@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'is_active',
     ];
 
     /**
@@ -39,6 +41,16 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
+
+    public function sharedFiles()
+    {
+        return $this->hasMany(SharedFile::class);
+    }
+
+    public function downloadUrls()
+    {
+        return $this->hasMany(DownloadUrl::class);
+    }
 }
