@@ -12,16 +12,26 @@ class OtpMail extends Mailable
 
     public $code;
     public $fileName;
+    public $senderEmail;
+    public $senderName;
 
-    public function __construct($code, $fileName)
+    public function __construct($code, $fileName, $senderEmail = null, $senderName = null)
     {
         $this->code = $code;
         $this->fileName = $fileName;
+        $this->senderEmail = $senderEmail;
+        $this->senderName = $senderName;
     }
 
     public function build()
     {
-        return $this->subject('【oneway-fileshare】認証コードのご案内')
-            ->view('emails.otp');
+        $mail = $this->subject('【oneway-fileshare】認証コードのご案内')
+            ->text('emails.otp');
+
+        if ($this->senderEmail) {
+            $mail->from($this->senderEmail, $this->senderName);
+        }
+
+        return $mail;
     }
 }

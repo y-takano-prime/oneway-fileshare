@@ -6,7 +6,6 @@ use App\Models\DownloadUrl;
 use App\Models\SharedFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DownloadUrlController extends Controller
@@ -24,8 +23,12 @@ class DownloadUrlController extends Controller
         return view('urls.index', ['urls' => $urls]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'URL発行は担当者のみ操作できます');
+        }
+
         $query = SharedFile::query();
 
         if (Auth::user()->role !== 'admin') {
@@ -34,14 +37,21 @@ class DownloadUrlController extends Controller
 
         $files = $query->latest()->get();
 
-        return view('urls.create', ['files' => $files]);
+        return view('urls.create', [
+            'files' => $files,
+            'selectedFileId' => $request->query('shared_file_id'),
+        ]);
     }
 
     public function store(Request $request)
     {
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'URL発行は担当者のみ操作できます');
+        }
+
         $validated = $request->validate([
             'shared_file_id' => ['required', 'exists:shared_files,id'],
-            'passcode' => ['nullable', 'string', 'min:4', 'max:32'],
+            'recipient_name' => ['required', 'string', 'max:255'],
             'recipient_email' => ['required', 'email', 'max:255'],
             'expires_at' => ['required', 'date', 'after:now'],
             'download_limit' => ['nullable', 'integer', 'min:1', 'max:9999'],
@@ -52,7 +62,7 @@ class DownloadUrlController extends Controller
             'shared_file_id' => $validated['shared_file_id'],
             'user_id' => Auth::id(),
             'token' => Str::random(64),
-            'passcode' => !empty($validated['passcode']) ? Hash::make($validated['passcode']) : null,
+            'recipient_name' => $validated['recipient_name'],
             'recipient_email' => $validated['recipient_email'],
             'expires_at' => $validated['expires_at'],
             'download_limit' => $validated['download_limit'] ?? null,
@@ -69,7 +79,32 @@ class DownloadUrlController extends Controller
             $query->latest();
         }]);
 
-        return view('urls.show', ['url' => $url]);
+        $mailText = implode("\n", [
+            '件名：ファイルのご案内',
+            '',
+            ($url->recipient_name ?: $url->recipient_email) . ' 様',
+            '',
+            'お世話になっております。',
+            '以下のURLよりファイルをダウンロードいただけます。',
+            '',
+            '■ファイル名',
+            $url->sharedFile->original_name,
+            '',
+            '■ダウンロードURL',
+            route('download.passcode', $url->token),
+            '',
+            '■有効期限',
+            $url->expires_at->format('Y年m月d日 H:i'),
+            '',
+            'ダウンロード後は手順に従いメール認証を完了してください。',
+            '',
+            'よろしくお願いいたします。',
+        ]);
+
+        return view('urls.show', [
+            'url' => $url,
+            'mailText' => $mailText,
+        ]);
     }
 
     public function destroy(DownloadUrl $url)

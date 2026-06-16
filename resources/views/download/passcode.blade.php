@@ -17,21 +17,12 @@
     @if (!empty($error))
         <div class="alert alert-danger">{{ $error }}</div>
     @endif
-    @if ($step === 'passcode')
-        <p class="text-muted mb-4">パスコードを入力してください</p>
-        <form method="POST" action="{{ route('download.verify-passcode', $token) }}">
-            @csrf
-            <input type="password" name="passcode" class="form-control mb-3 text-center" autofocus required>
-            <button type="submit" class="btn btn-primary w-100">次へ</button>
-        </form>
-    @else
-        <p class="text-muted mb-4">登録済みのメールアドレスを入力してください</p>
-        <form method="POST" action="{{ route('download.verify-email', $token) }}">
-            @csrf
-            <input type="email" name="email" class="form-control mb-3 text-center" autofocus required>
-            <button type="submit" class="btn btn-primary w-100">次へ</button>
-        </form>
-    @endif
+    <p class="text-muted mb-4">登録済みのメールアドレスを入力してください</p>
+    <form method="POST" action="{{ route('download.verify-email', $token) }}">
+        @csrf
+        <input type="email" name="email" class="form-control mb-3 text-center" autofocus required>
+        <button type="submit" class="btn btn-primary w-100">次へ</button>
+    </form>
 </div>
 </body>
 </html>

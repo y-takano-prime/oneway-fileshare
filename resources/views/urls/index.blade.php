@@ -3,7 +3,9 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0">URL管理</h2>
-        <a href="{{ route('urls.create') }}" class="btn btn-primary">新規URL発行</a>
+        @if (Auth::user()->role !== 'admin')
+            <a href="{{ route('urls.create') }}" class="btn btn-primary">新規URL発行</a>
+        @endif
     </div>
 
     <div class="card">

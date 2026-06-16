@@ -21,9 +21,13 @@
                     <select name="shared_file_id" class="form-select" required>
                         <option value="">選択してください</option>
                         @foreach ($files as $file)
-                            <option value="{{ $file->id }}" {{ old('shared_file_id') == $file->id ? 'selected' : '' }}>{{ $file->original_name }}</option>
+                            <option value="{{ $file->id }}" {{ old('shared_file_id', $selectedFileId) == $file->id ? 'selected' : '' }}>{{ $file->original_name }}</option>
                         @endforeach
                     </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">相手先の名前</label>
+                    <input type="text" name="recipient_name" value="{{ old('recipient_name') }}" class="form-control" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">相手先メールアドレス</label>
@@ -32,10 +36,6 @@
                 <div class="mb-3">
                     <label class="form-label">有効期限</label>
                     <input type="datetime-local" name="expires_at" value="{{ old('expires_at') }}" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">パスコード（任意）</label>
-                    <input type="text" name="passcode" value="{{ old('passcode') }}" class="form-control">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">ダウンロード回数上限（任意）</label>

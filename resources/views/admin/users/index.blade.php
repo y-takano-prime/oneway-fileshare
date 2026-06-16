@@ -24,10 +24,10 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                <span class="badge {{ $user->role === 'admin' ? 'bg-purple' : 'bg-blue' }}">{{ $user->role }}</span>
+                                <span class="badge {{ $user->role === 'admin' ? 'bg-purple-lt' : 'bg-blue-lt' }}">{{ $user->role === 'admin' ? '管理者' : '担当者' }}</span>
                             </td>
                             <td>
-                                <span class="badge {{ $user->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $user->is_active ? '有効' : '無効' }}</span>
+                                <span class="badge {{ $user->is_active ? 'bg-success-lt' : 'bg-secondary-lt' }}">{{ $user->is_active ? '有効' : '無効' }}</span>
                             </td>
                             <td class="text-end">
                                 <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">編集</a>

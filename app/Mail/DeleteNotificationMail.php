@@ -23,6 +23,6 @@ class DeleteNotificationMail extends Mailable
     public function build()
     {
         return $this->subject('【oneway-fileshare】ファイルが自動削除される予定です')
-            ->view('emails.delete_notification');
+            ->text('emails.delete_notification');
     }
 }

@@ -18,10 +18,26 @@
                 <dd class="col-9">
                     <div class="input-group">
                         <input type="text" class="form-control" id="download-url" value="{{ route('download.passcode', $url->token) }}" readonly>
-                        <button type="button" class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('download-url').value)">コピー</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="copyDownloadUrl()">コピー</button>
                     </div>
                 </dd>
             </dl>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">送付メール文章</h3>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="copyMailText()">
+                全文をコピー
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="mb-2 text-muted" style="font-size: 0.85rem;">
+                以下の文章をコピーして、メールシステムに貼り付けてください。
+            </div>
+            <textarea id="mail-text" class="form-control" rows="14" readonly style="font-size: 0.9rem; white-space: pre; font-family: monospace;">{{ $mailText }}</textarea>
+            <div id="copy-feedback" class="mt-2 text-success d-none">コピーしました</div>
         </div>
     </div>
 
@@ -54,4 +70,39 @@
             </table>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        function copyDownloadUrl() {
+            const input = document.getElementById('download-url');
+            input.select();
+            input.setSelectionRange(0, 99999);
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(input.value);
+            } else {
+                document.execCommand('copy');
+            }
+        }
+
+        function copyMailText() {
+            const textarea = document.getElementById('mail-text');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+
+            const feedback = document.getElementById('copy-feedback');
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    feedback.classList.remove('d-none');
+                    setTimeout(() => feedback.classList.add('d-none'), 2000);
+                });
+            } else {
+                document.execCommand('copy');
+                feedback.classList.remove('d-none');
+                setTimeout(() => feedback.classList.add('d-none'), 2000);
+            }
+        }
+    </script>
 @endsection

@@ -23,6 +23,6 @@ class DownloadNotificationMail extends Mailable
     public function build()
     {
         return $this->subject('【oneway-fileshare】ファイルがダウンロードされました')
-            ->view('emails.download_notification');
+            ->text('emails.download_notification');
     }
 }

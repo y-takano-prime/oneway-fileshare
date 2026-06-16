@@ -8,7 +8,6 @@ use App\Models\AccessLog;
 use App\Models\AuthCode;
 use App\Models\DownloadUrl;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,36 +21,14 @@ class DownloadController extends Controller
             return $error;
         }
 
-        if (!$this->isVerified($token, 'passcode_verified')) {
-            $this->log($url, 'access');
-
-            return view('download.passcode', ['token' => $token, 'step' => 'passcode']);
-        }
+        $this->log($url, 'access');
+        $this->markVerified($token, 'passcode_verified'); // スキップ扱いで自動付与
 
         return view('download.passcode', ['token' => $token, 'step' => 'email']);
     }
 
     public function verifyPasscode($token, Request $request)
     {
-        $url = $this->findUrl($token);
-
-        if ($error = $this->checkExpiry($url)) {
-            return $error;
-        }
-
-        if ($url->passcode && !Hash::check((string) $request->input('passcode'), $url->passcode)) {
-            $this->log($url, 'passcode_fail');
-
-            return view('download.passcode', [
-                'token' => $token,
-                'step' => 'passcode',
-                'error' => 'パスコードが正しくありません',
-            ]);
-        }
-
-        $this->log($url, 'passcode_ok');
-        $this->markVerified($token, 'passcode_verified');
-
         return redirect()->route('download.passcode', ['token' => $token]);
     }
 
@@ -88,7 +65,20 @@ class DownloadController extends Controller
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        Mail::to($url->recipient_email)->send(new OtpMail($code, $url->sharedFile->original_name));
+        $senderEmail = optional($url->user)->email;
+        $senderName = optional($url->user)->name;
+
+        try {
+            Mail::to($url->recipient_email)->send(new OtpMail($code, $url->sharedFile->original_name, $senderEmail, $senderName));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return view('download.passcode', [
+                'token' => $token,
+                'step' => 'email',
+                'error' => '認証コードの送信に失敗しました。しばらく時間をおいて再度お試しください。',
+            ]);
+        }
 
         return view('download.otp', ['token' => $token]);
     }
@@ -193,7 +183,11 @@ class DownloadController extends Controller
         $this->log($url, 'download');
 
         if ($url->notify_on_download) {
-            Mail::to($url->user->email)->send(new DownloadNotificationMail($url, request()->ip()));
+            try {
+                Mail::to($url->user->email)->send(new DownloadNotificationMail($url, request()->ip()));
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         return Storage::download($url->sharedFile->stored_path, $url->sharedFile->original_name);
@@ -201,7 +195,7 @@ class DownloadController extends Controller
 
     private function findUrl($token)
     {
-        $url = DownloadUrl::where('token', $token)->first();
+        $url = DownloadUrl::with('user', 'sharedFile')->where('token', $token)->first();
 
         if (!$url) {
             abort(404);

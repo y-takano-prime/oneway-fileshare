@@ -14,6 +14,7 @@ class DownloadUrl extends Model
         'user_id',
         'token',
         'passcode',
+        'recipient_name',
         'recipient_email',
         'expires_at',
         'download_limit',

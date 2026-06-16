@@ -39,7 +39,10 @@
                             <td>{{ number_format($file->file_size / 1024, 1) }} KB</td>
                             <td>{{ $file->created_at->format('Y-m-d H:i') }}</td>
                             <td class="text-end">
-                                <form method="POST" action="{{ route('files.destroy', $file) }}" onsubmit="return confirm('削除しますか？')">
+                                @if (Auth::user()->role !== 'admin')
+                                    <a href="{{ route('urls.create', ['shared_file_id' => $file->id]) }}" class="btn btn-sm btn-primary">URL発行</a>
+                                @endif
+                                <form method="POST" action="{{ route('files.destroy', $file) }}" class="d-inline" onsubmit="return confirm('削除しますか？')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-danger">削除</button>
