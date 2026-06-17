@@ -26,6 +26,7 @@
                     <tr>
                         <th>ファイル名</th>
                         <th>相手先</th>
+                        <th>発行日時</th>
                         <th>有効期限</th>
                         <th>DL状況</th>
                         <th></th>
@@ -39,6 +40,7 @@
                                 {{ $url->recipient_name ?: $url->recipient_email }}
                                 <div class="text-muted small">{{ $url->recipient_email }}</div>
                             </td>
+                            <td>{{ $url->created_at->format('Y-m-d H:i') }}</td>
                             <td>
                                 {{ $url->expires_at->format('Y-m-d H:i') }}
                                 @if ($url->expires_at->isPast())
@@ -63,7 +65,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">URLがありません</td>
+                            <td colspan="6" class="text-center text-muted">URLがありません</td>
                         </tr>
                     @endforelse
                 </tbody>
