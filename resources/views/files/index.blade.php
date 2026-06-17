@@ -48,6 +48,7 @@
                         @endif
                         <th>サイズ</th>
                         <th>アップロード日時</th>
+                        <th>削除予定日</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -68,6 +69,22 @@
                             @endif
                             <td>{{ number_format($file->file_size / 1024, 1) }} KB</td>
                             <td>{{ $file->created_at->format('Y-m-d H:i') }}</td>
+                            <td>
+                                @php
+                                    $earliestUrl = $file->downloadUrls->sortBy('expires_at')->first();
+                                    $deletionDate = $earliestUrl ? $earliestUrl->expires_at->copy()->addDays($graceDays) : null;
+                                @endphp
+                                @if ($deletionDate)
+                                    {{ $deletionDate->format('Y-m-d') }}
+                                    @if ($deletionDate->isPast())
+                                        <span class="badge bg-danger-lt ms-1">削除済</span>
+                                    @elseif ($deletionDate->diffInDays(now()) <= 3)
+                                        <span class="badge bg-warning-lt ms-1">まもなく</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td class="text-end">
                                 @if (Auth::user()->role !== 'admin')
                                     <a href="{{ route('urls.create', ['shared_file_id' => $file->id]) }}" class="btn btn-sm btn-primary">URL発行</a>
@@ -81,7 +98,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">ファイルがありません</td>
+                            <td colspan="6" class="text-center text-muted">ファイルがありません</td>
                         </tr>
                     @endforelse
                 </tbody>

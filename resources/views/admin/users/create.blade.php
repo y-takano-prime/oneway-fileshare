@@ -21,6 +21,10 @@
                     <input type="text" name="name" value="{{ old('name') }}" class="form-control" required>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label">社員コード</label>
+                    <input type="text" name="employee_code" value="{{ old('employee_code') }}" class="form-control" maxlength="50">
+                </div>
+                <div class="mb-3">
                     <label class="form-label">メールアドレス</label>
                     <input type="email" name="email" value="{{ old('email') }}" class="form-control" required>
                 </div>
@@ -37,6 +41,24 @@
                     <select name="role" class="form-select" required>
                         <option value="staff" {{ old('role') === 'staff' ? 'selected' : '' }}>担当者</option>
                         <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>管理者</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">会社ID</label>
+                    <select name="company_id" class="form-select">
+                        <option value="">未設定</option>
+                        @foreach(['P', 'M', 'T', 'H'] as $c)
+                        <option value="{{ $c }}" {{ old('company_id') === $c ? 'selected' : '' }}>{{ $c }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">部署</label>
+                    <select name="dept_id" class="form-select">
+                        <option value="">未設定</option>
+                        @foreach($depts as $dept)
+                        <option value="{{ $dept->id }}" {{ old('dept_id') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="mb-3 form-check">

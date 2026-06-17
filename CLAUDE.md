@@ -8,11 +8,9 @@
 
 - `CLAUDE.md`
 - `docs/要件定義書.md`
-- `docs/開発ログ.md`
+- `docs/開発ログ.md`（**追記のみ可。既存の記録は削除・上書き禁止**）
 - `docs/設計仕様書.md`
 - `docs/実装指示書.md`
-- `log_start.bat`
-- `log_end.bat`
 - `.env`
 - `composer.json`
 - `composer.lock`
@@ -27,6 +25,13 @@
 - `composer update`
 - `composer install`
 - `rm`・`del` などのファイル削除コマンド
+
+### データベース操作の絶対ルール
+
+- **本プロジェクト（oneway-fileshare）のDB以外への変更は、いかなる理由があっても絶対禁止**
+- 接続先DBを変更する `.env` の `DB_DATABASE` / `DB_HOST` / `DB_PORT` の書き換えは禁止
+- `database/migrations/` の実行前に必ず `DB_DATABASE` が `oneway_fileshare`（または本プロジェクト用DB名）であることを確認すること
+- 既存社内システム（`C:\xampp\htdocs\` 配下）のDBには絶対に触れないこと
 
 ### ループ・暴走防止ルール
 

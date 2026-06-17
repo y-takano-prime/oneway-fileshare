@@ -12,6 +12,7 @@ class SharedFile extends Model
         'stored_path',
         'file_size',
         'mime_type',
+        'category',
     ];
 
     public function user()

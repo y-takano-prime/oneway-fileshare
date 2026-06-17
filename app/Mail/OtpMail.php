@@ -26,7 +26,7 @@ class OtpMail extends Mailable
     public function build()
     {
         $mail = $this->subject('【oneway-fileshare】認証コードのご案内')
-            ->text('emails.otp');
+            ->view('emails.otp');
 
         if ($this->senderEmail) {
             $mail->from($this->senderEmail, $this->senderName);

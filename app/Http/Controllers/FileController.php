@@ -25,7 +25,13 @@ class FileController extends Controller
 
         $files = $query->latest()->get();
 
-        return view('files.index', ['files' => $files]);
+        $graceDays = 7;
+        if (Storage::exists('settings.json')) {
+            $settings = json_decode(Storage::get('settings.json'), true);
+            $graceDays = $settings['cleanup_grace_days'] ?? 7;
+        }
+
+        return view('files.index', ['files' => $files, 'graceDays' => $graceDays]);
     }
 
     public function store(Request $request)
@@ -39,17 +45,21 @@ class FileController extends Controller
             ],
         ]);
 
+        $category = in_array($request->input('category'), ['business', 'recruitment', 'other'])
+            ? $request->input('category') : null;
+
         foreach ($request->file('files') as $file) {
             $extension = $file->getClientOriginalExtension();
             $storedName = Str::uuid()->toString() . ($extension ? '.' . $extension : '');
             $path = $file->storeAs('uploads/' . Auth::id(), $storedName);
 
             SharedFile::create([
-                'user_id' => Auth::id(),
+                'user_id'       => Auth::id(),
                 'original_name' => $file->getClientOriginalName(),
-                'stored_path' => $path,
-                'file_size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
+                'stored_path'   => $path,
+                'file_size'     => $file->getSize(),
+                'mime_type'     => $file->getMimeType(),
+                'category'      => $category,
             ]);
         }
 

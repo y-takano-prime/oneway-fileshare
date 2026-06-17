@@ -32,7 +32,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('files', FileController::class)->only(['index', 'store', 'destroy']);
+    Route::get('urls/create/step2', [DownloadUrlController::class, 'createStep2'])->name('urls.create_step2');
+    Route::post('urls/step1', [DownloadUrlController::class, 'storeStep1'])->name('urls.store_step1');
     Route::resource('urls', DownloadUrlController::class)->only(['index', 'create', 'store', 'show', 'destroy', 'edit', 'update']);
+    Route::get('urls/{url}/complete', [DownloadUrlController::class, 'complete'])->name('urls.complete');
 
     // 管理者専用
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {

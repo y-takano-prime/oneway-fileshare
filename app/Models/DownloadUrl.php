@@ -12,14 +12,18 @@ class DownloadUrl extends Model
     protected $fillable = [
         'shared_file_id',
         'user_id',
+        'category',
         'token',
         'passcode',
         'recipient_name',
+        'company_name',
+        'recipient_title',
         'recipient_email',
         'expires_at',
         'download_limit',
         'download_count',
         'notify_on_download',
+        'memo',
     ];
 
     protected $casts = [
