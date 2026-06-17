@@ -47,9 +47,9 @@
                             </td>
                             <td>
                                 @if ($url->download_count > 0)
-                                    <span class="badge bg-success">済</span>
+                                    <span class="badge bg-success-lt">済</span>
                                 @else
-                                    <span class="badge bg-secondary">未</span>
+                                    <span class="badge bg-secondary-lt">未</span>
                                 @endif
                                 <span class="ms-1 small">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</span>
                             </td>
