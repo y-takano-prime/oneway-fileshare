@@ -51,7 +51,14 @@
                     @forelse ($files as $file)
                         <tr>
                             <td>{{ $file->original_name }}</td>
-                            <td>{{ $file->download_urls_count }}</td>
+                            <td>
+                                {{ $file->download_urls_count }}件
+                                @if (Auth::user()->role !== 'admin' && $file->downloadUrls->isNotEmpty())
+                                    @foreach ($file->downloadUrls as $u)
+                                        <div class="text-muted small">{{ $u->recipient_name ?: $u->recipient_email }}</div>
+                                    @endforeach
+                                @endif
+                            </td>
                             @if (Auth::user()->role === 'admin')
                                 <td>{{ optional($file->user)->name ?? '-' }}</td>
                             @endif

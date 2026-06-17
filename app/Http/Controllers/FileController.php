@@ -13,7 +13,7 @@ class FileController extends Controller
 {
     public function index(Request $request)
     {
-        $query = SharedFile::withCount('downloadUrls')->with('user');
+        $query = SharedFile::withCount('downloadUrls')->with(['user', 'downloadUrls']);
 
         if (Auth::user()->role !== 'admin') {
             $query->where('user_id', Auth::id());
