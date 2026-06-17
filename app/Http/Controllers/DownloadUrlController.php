@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class DownloadUrlController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $query = DownloadUrl::query()->with('sharedFile');
 
@@ -18,9 +18,39 @@ class DownloadUrlController extends Controller
             $query->where('user_id', Auth::id());
         }
 
+        if ($q = $request->input('q')) {
+            $query->where(function ($q2) use ($q) {
+                $q2->where('recipient_name', 'like', "%{$q}%")
+                   ->orWhere('recipient_email', 'like', "%{$q}%")
+                   ->orWhereHas('sharedFile', function ($q3) use ($q) {
+                       $q3->where('original_name', 'like', "%{$q}%");
+                   });
+            });
+        }
+
         $urls = $query->latest()->get();
 
         return view('urls.index', ['urls' => $urls]);
+    }
+
+    public function edit(DownloadUrl $url)
+    {
+        return view('urls.edit', ['url' => $url]);
+    }
+
+    public function update(Request $request, DownloadUrl $url)
+    {
+        $validated = $request->validate([
+            'expires_at' => ['required', 'date', 'after:now'],
+            'download_limit' => ['nullable', 'integer', 'min:1', 'max:9999'],
+        ]);
+
+        $url->update([
+            'expires_at' => $validated['expires_at'],
+            'download_limit' => $validated['download_limit'] ?? null,
+        ]);
+
+        return redirect()->route('urls.show', $url)->with('success', '更新しました');
     }
 
     public function create(Request $request)

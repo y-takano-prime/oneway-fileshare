@@ -47,7 +47,7 @@
                     @forelse ($recentUrls as $url)
                         <tr>
                             <td>{{ $url->sharedFile->original_name ?? '-' }}</td>
-                            <td>{{ $url->recipient_email }}</td>
+                            <td>{{ $url->recipient_name ?: $url->recipient_email }}</td>
                             <td>{{ $url->expires_at->format('Y-m-d H:i') }}</td>
                             <td>{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
                         </tr>

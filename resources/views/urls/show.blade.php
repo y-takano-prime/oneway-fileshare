@@ -22,6 +22,9 @@
                     </div>
                 </dd>
             </dl>
+            <div class="mt-3">
+                <a href="{{ route('urls.edit', $url) }}" class="btn btn-sm btn-outline-secondary">有効期限・上限を編集</a>
+            </div>
         </div>
     </div>
 

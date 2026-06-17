@@ -22,11 +22,26 @@
         <div class="card-header">
             <h3 class="card-title">アップロード済みファイル</h3>
         </div>
+        <div class="card-body pb-0">
+            <form method="GET" action="{{ route('files.index') }}" class="mb-3">
+                <div class="input-group" style="max-width: 400px;">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="ファイル名で検索">
+                    <button type="submit" class="btn btn-outline-secondary">検索</button>
+                    @if(request('q'))
+                        <a href="{{ route('files.index') }}" class="btn btn-outline-danger">クリア</a>
+                    @endif
+                </div>
+            </form>
+        </div>
         <div class="table-responsive">
             <table class="table card-table table-vcenter">
                 <thead>
                     <tr>
                         <th>ファイル名</th>
+                        <th>URL数</th>
+                        @if (Auth::user()->role === 'admin')
+                            <th>アップロード者</th>
+                        @endif
                         <th>サイズ</th>
                         <th>アップロード日時</th>
                         <th></th>
@@ -36,6 +51,10 @@
                     @forelse ($files as $file)
                         <tr>
                             <td>{{ $file->original_name }}</td>
+                            <td>{{ $file->download_urls_count }}</td>
+                            @if (Auth::user()->role === 'admin')
+                                <td>{{ optional($file->user)->name ?? '-' }}</td>
+                            @endif
                             <td>{{ number_format($file->file_size / 1024, 1) }} KB</td>
                             <td>{{ $file->created_at->format('Y-m-d H:i') }}</td>
                             <td class="text-end">
@@ -51,7 +70,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center text-muted">ファイルがありません</td>
+                            <td colspan="5" class="text-center text-muted">ファイルがありません</td>
                         </tr>
                     @endforelse
                 </tbody>

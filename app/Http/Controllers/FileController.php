@@ -11,12 +11,16 @@ use Illuminate\Support\Str;
 
 class FileController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $query = SharedFile::query();
+        $query = SharedFile::withCount('downloadUrls')->with('user');
 
         if (Auth::user()->role !== 'admin') {
             $query->where('user_id', Auth::id());
+        }
+
+        if ($q = $request->input('q')) {
+            $query->where('original_name', 'like', "%{$q}%");
         }
 
         $files = $query->latest()->get();

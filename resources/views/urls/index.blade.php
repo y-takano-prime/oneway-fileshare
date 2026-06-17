@@ -9,6 +9,17 @@
     </div>
 
     <div class="card">
+        <div class="card-body pb-0">
+            <form method="GET" action="{{ route('urls.index') }}" class="mb-3">
+                <div class="input-group" style="max-width: 400px;">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="相手先名・メール・ファイル名で検索">
+                    <button type="submit" class="btn btn-outline-secondary">検索</button>
+                    @if(request('q'))
+                        <a href="{{ route('urls.index') }}" class="btn btn-outline-danger">クリア</a>
+                    @endif
+                </div>
+            </form>
+        </div>
         <div class="table-responsive">
             <table class="table card-table table-vcenter">
                 <thead>
@@ -22,10 +33,18 @@
                 </thead>
                 <tbody>
                     @forelse ($urls as $url)
-                        <tr>
+                        <tr class="{{ $url->expires_at->isPast() ? 'text-muted' : '' }}">
                             <td><a href="{{ route('urls.show', $url) }}">{{ $url->sharedFile->original_name ?? '-' }}</a></td>
-                            <td>{{ $url->recipient_email }}</td>
-                            <td>{{ $url->expires_at->format('Y-m-d H:i') }}</td>
+                            <td>
+                                {{ $url->recipient_name ?: $url->recipient_email }}
+                                <div class="text-muted small">{{ $url->recipient_email }}</div>
+                            </td>
+                            <td>
+                                {{ $url->expires_at->format('Y-m-d H:i') }}
+                                @if ($url->expires_at->isPast())
+                                    <span class="badge bg-secondary ms-1">期限切れ</span>
+                                @endif
+                            </td>
                             <td>{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
                             <td class="text-end">
                                 <form method="POST" action="{{ route('urls.destroy', $url) }}" onsubmit="return confirm('無効化しますか？')">
