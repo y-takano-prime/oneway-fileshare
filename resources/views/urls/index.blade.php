@@ -42,7 +42,7 @@
                             <td>
                                 {{ $url->expires_at->format('Y-m-d H:i') }}
                                 @if ($url->expires_at->isPast())
-                                    <span class="badge bg-secondary ms-1">期限切れ</span>
+                                    <span class="badge bg-secondary-lt ms-1">期限切れ</span>
                                 @endif
                             </td>
                             <td>
