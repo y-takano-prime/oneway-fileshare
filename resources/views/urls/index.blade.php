@@ -27,7 +27,7 @@
                         <th>ファイル名</th>
                         <th>相手先</th>
                         <th>有効期限</th>
-                        <th>DL数</th>
+                        <th>DL状況</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -45,7 +45,14 @@
                                     <span class="badge bg-secondary ms-1">期限切れ</span>
                                 @endif
                             </td>
-                            <td>{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
+                            <td>
+                                @if ($url->download_count > 0)
+                                    <span class="badge bg-success">済</span>
+                                @else
+                                    <span class="badge bg-secondary">未</span>
+                                @endif
+                                <span class="ms-1 small">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</span>
+                            </td>
                             <td class="text-end">
                                 <form method="POST" action="{{ route('urls.destroy', $url) }}" onsubmit="return confirm('無効化しますか？')">
                                     @csrf
