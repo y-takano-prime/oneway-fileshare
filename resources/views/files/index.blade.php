@@ -9,6 +9,10 @@
                 <p class="mb-2">ここにファイルをドラッグ＆ドロップ、またはクリックして選択</p>
                 <input type="file" id="file-input" multiple class="d-none">
             </div>
+            <div class="alert alert-info mt-3 mb-0">
+                <strong>複数ファイルを送付する場合：</strong>
+                まとめてZIPに圧縮してからアップロードしてください。1つのURLで相手先にまとめて届けられます。
+            </div>
             <div id="progress-wrapper" class="mt-3 d-none">
                 <div class="progress">
                     <div id="progress-bar" class="progress-bar" style="width:0%"></div>
