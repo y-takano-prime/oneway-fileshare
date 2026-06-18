@@ -25,7 +25,7 @@
             padding: 0 1.5rem;
             display: flex;
             align-items: center;
-            gap: 1.5rem;
+            gap: 0.75rem;
         }
         .axon-logo {
             display: flex;
@@ -51,13 +51,15 @@
             color: #001240;
             font-size: 13px;
             text-decoration: none;
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #D0DEFF;
+            background: #fff;
             letter-spacing: 0.01em;
             white-space: nowrap;
         }
-        .axon-nav-link:hover { background: #E6F0FF; color: #0044CC; }
-        .axon-nav-link.active { background: #E6F0FF; color: #0066FF; font-weight: 500; }
+        .axon-nav-link:hover { background: #E6F0FF; color: #0044CC; border-color: #B0CCFF; }
+        .axon-nav-link.active { background: #0066FF; color: #fff; border-color: #0066FF; font-weight: 500; }
         .axon-nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
         .axon-id-card {
             display: flex;

@@ -54,6 +54,8 @@ class CleanupExpiredFiles extends Command
             }
         }
 
+        DeletedFilesLog::where('deleted_at', '<', now()->subYear())->delete();
+
         $this->info('クリーンアップ処理が完了しました');
     }
 
