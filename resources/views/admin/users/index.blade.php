@@ -58,5 +58,8 @@
             @endforelse
         </tbody>
     </table>
+    <div style="padding:12px 16px;border-top:0.5px solid #D0DEFF">
+        {{ $users->links() }}
+    </div>
 </div>
 @endsection

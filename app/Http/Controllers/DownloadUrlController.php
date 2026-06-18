@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\FileShareNotificationMail;
 use App\Models\DownloadUrl;
 use App\Models\SharedFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class DownloadUrlController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DownloadUrl::query()->with('sharedFile', 'user');
+        $query = DownloadUrl::withTrashed()->with('sharedFile', 'user');
 
         if (Auth::user()->role !== 'admin') {
             $query->where('user_id', Auth::id());
@@ -39,41 +42,63 @@ class DownloadUrlController extends Controller
 
         // タブ用カウント（フィルター適用前）
         $counts = [
-            'all'     => (clone $query)->count(),
-            'wait'    => (clone $query)->where('expires_at', '>', now())->where('download_count', 0)->count(),
-            'done'    => (clone $query)->where('download_count', '>', 0)->count(),
-            'expired' => (clone $query)->where('expires_at', '<=', now())->count(),
+            'all'         => (clone $query)->whereNull('deleted_at')->count(),
+            'wait'        => (clone $query)->whereNull('deleted_at')->where('expires_at', '>', now())->where('download_count', 0)->count(),
+            'done'        => (clone $query)->whereNull('deleted_at')->where('download_count', '>', 0)->count(),
+            'expired'     => (clone $query)->whereNull('deleted_at')->where('expires_at', '<=', now())->count(),
+            'invalidated' => (clone $query)->whereNotNull('deleted_at')->count(),
+        ];
+
+        $categoryCounts = [
+            'all'         => (clone $query)->whereNull('deleted_at')->count(),
+            'business'    => (clone $query)->whereNull('deleted_at')->where('category', 'business')->count(),
+            'recruitment' => (clone $query)->whereNull('deleted_at')->where('category', 'recruitment')->count(),
+            'other'       => (clone $query)->whereNull('deleted_at')->where('category', 'other')->count(),
         ];
 
         // 状態フィルター
         $status = $request->input('status', 'all');
-        if ($status === 'wait') {
-            $query->where('expires_at', '>', now())->where('download_count', 0);
+        if ($status === 'invalidated') {
+            $query->whereNotNull('deleted_at');
+        } elseif ($status === 'wait') {
+            $query->whereNull('deleted_at')->where('expires_at', '>', now())->where('download_count', 0);
         } elseif ($status === 'done') {
-            $query->where('download_count', '>', 0);
+            $query->whereNull('deleted_at')->where('download_count', '>', 0);
         } elseif ($status === 'expired') {
-            $query->where('expires_at', '<=', now());
+            $query->whereNull('deleted_at')->where('expires_at', '<=', now());
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // 属性フィルター
+        $category = $request->input('category', 'all');
+        if (in_array($category, ['business', 'recruitment', 'other'])) {
+            $query->where('category', $category);
         }
 
         // ソート
-        $allowedSorts = ['created_at', 'expires_at', 'download_count', 'recipient_name'];
+        $allowedSorts = ['created_at', 'expires_at', 'download_count', 'recipient_name', 'category'];
         $sort = in_array($request->input('sort'), $allowedSorts) ? $request->input('sort') : 'created_at';
         $dir  = $request->input('dir') === 'asc' ? 'asc' : 'desc';
 
-        $urls = $query->orderBy($sort, $dir)->get();
+        $urls = $query->orderBy($sort, $dir)->paginate(20)->withQueryString();
 
         $staffQ = $request->input('staff_q', '');
 
-        return view('urls.index', compact('urls', 'status', 'sort', 'dir', 'counts', 'staffQ'));
+        return view('urls.index', compact('urls', 'status', 'category', 'sort', 'dir', 'counts', 'categoryCounts', 'staffQ'));
     }
 
     public function edit(DownloadUrl $url)
     {
+        $this->authorizeOwner($url);
+
         return view('urls.edit', ['url' => $url]);
     }
 
     public function update(Request $request, DownloadUrl $url)
     {
+        $this->authorizeOwner($url);
+
         $validated = $request->validate([
             'expires_at' => ['required', 'date', 'after:now'],
             'download_limit' => ['nullable', 'integer', 'min:1', 'max:9999'],
@@ -93,41 +118,10 @@ class DownloadUrlController extends Controller
             abort(403, 'URL発行は担当者のみ操作できます');
         }
 
-        $query = SharedFile::query()->where('user_id', Auth::id());
-        $files = $query->latest()->get();
-
-        return view('urls.create', ['files' => $files]);
+        return view('urls.create');
     }
 
     public function storeStep1(Request $request)
-    {
-        if (Auth::user()->role === 'admin') {
-            abort(403, 'URL発行は担当者のみ操作できます');
-        }
-
-        $request->validate(['shared_file_id' => ['required', 'exists:shared_files,id']]);
-        session(['create_file_id' => $request->shared_file_id]);
-
-        return redirect()->route('urls.create_step2');
-    }
-
-    public function createStep2()
-    {
-        if (Auth::user()->role === 'admin') {
-            abort(403, 'URL発行は担当者のみ操作できます');
-        }
-
-        $fileId = session('create_file_id');
-        if (!$fileId) {
-            return redirect()->route('urls.create');
-        }
-
-        $file = SharedFile::findOrFail($fileId);
-
-        return view('urls.create_step2', ['file' => $file]);
-    }
-
-    public function store(Request $request)
     {
         if (Auth::user()->role === 'admin') {
             abort(403, 'URL発行は担当者のみ操作できます');
@@ -145,33 +139,89 @@ class DownloadUrlController extends Controller
             'memo'               => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $fileId = session('create_file_id');
-        if (!$fileId) {
+        $validated['notify_on_download'] = $request->boolean('notify_on_download');
+
+        session(['create_recipient' => $validated]);
+
+        return redirect()->route('urls.create_step2');
+    }
+
+    public function createStep2()
+    {
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'URL発行は担当者のみ操作できます');
+        }
+
+        if (!session('create_recipient')) {
             return redirect()->route('urls.create');
         }
 
-        $url = DownloadUrl::create([
-            'shared_file_id'     => $fileId,
-            'user_id'            => Auth::id(),
-            'category'           => $validated['category'],
-            'token'              => Str::random(64),
-            'recipient_name'     => $validated['recipient_name'],
-            'company_name'       => $validated['company_name'] ?? null,
-            'recipient_title'    => $validated['recipient_title'] ?? null,
-            'recipient_email'    => $validated['recipient_email'],
-            'expires_at'         => $validated['expires_at'],
-            'download_limit'     => $validated['download_limit'] ?? null,
-            'download_count'     => 0,
-            'notify_on_download' => $request->boolean('notify_on_download'),
-            'memo'               => $validated['memo'] ?? null,
-        ]);
+        $files = SharedFile::query()->where('user_id', Auth::id())->latest()->get();
 
-        session()->forget('create_file_id');
+        return view('urls.create_step2', ['files' => $files]);
+    }
+
+    public function store(Request $request)
+    {
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'URL発行は担当者のみ操作できます');
+        }
+
+        $recipient = session('create_recipient');
+        if (!$recipient) {
+            return redirect()->route('urls.create');
+        }
+
+        if ($request->hasFile('upload_file')) {
+            $validated = $request->validate([
+                'upload_file' => [
+                    'required',
+                    'file',
+                    'max:102400',
+                    'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,csv,txt',
+                ],
+            ]);
+
+            $file = $validated['upload_file'];
+            $storedName = Str::uuid()->toString() . ($file->getClientOriginalExtension() ? '.' . $file->getClientOriginalExtension() : '');
+            $path = $file->storeAs('uploads/' . Auth::id(), $storedName);
+
+            $sharedFile = SharedFile::create([
+                'user_id'       => Auth::id(),
+                'original_name' => $file->getClientOriginalName(),
+                'stored_path'   => $path,
+                'file_size'     => $file->getSize(),
+                'mime_type'     => $file->getMimeType(),
+                'category'      => null,
+            ]);
+
+            $fileId = $sharedFile->id;
+        } else {
+            $request->validate([
+                'shared_file_id' => [
+                    'required',
+                    Rule::exists('shared_files', 'id')->where('user_id', Auth::id()),
+                ],
+            ], [
+                'shared_file_id.required' => 'ファイルをアップロードするか、既存のファイルを選択してください。',
+            ]);
+
+            $fileId = $request->shared_file_id;
+        }
+
+        $url = DownloadUrl::create(array_merge($recipient, [
+            'shared_file_id' => $fileId,
+            'user_id'        => Auth::id(),
+            'token'          => Str::random(64),
+            'download_count' => 0,
+        ]));
+
+        session()->forget('create_recipient');
 
         return redirect()->route('urls.complete', $url);
     }
 
-    private function buildMailText(DownloadUrl $url): string
+    private function buildMailBody(DownloadUrl $url): string
     {
         $greeting = [];
         if ($url->company_name)    $greeting[] = $url->company_name;
@@ -180,7 +230,6 @@ class DownloadUrlController extends Controller
         $greeting[] = $url->recipient_name . ' 様';
 
         return implode("\n", array_merge(
-            ['件名：ファイルのご案内', ''],
             $greeting,
             [
                 '',
@@ -203,15 +252,43 @@ class DownloadUrlController extends Controller
         ));
     }
 
+    private function buildMailText(DownloadUrl $url): string
+    {
+        return implode("\n", ['件名：ファイルのご案内', '', $this->buildMailBody($url)]);
+    }
+
+    public function sendMail(DownloadUrl $url)
+    {
+        $this->authorizeOwner($url);
+
+        $url->load(['sharedFile', 'user']);
+
+        try {
+            Mail::to($url->recipient_email)->send(new FileShareNotificationMail(
+                $this->buildMailBody($url),
+                optional($url->user)->email,
+                optional($url->user)->name
+            ));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'メールの送信に失敗しました。しばらく時間をおいて再度お試しください。');
+        }
+
+        return back()->with('success', '相手先にメールを送信しました。');
+    }
+
     public function complete(DownloadUrl $url)
     {
-        $url->load('sharedFile');
+        $url->load(['sharedFile', 'user']);
         $mailText = $this->buildMailText($url);
         return view('urls.complete', ['url' => $url, 'mailText' => $mailText]);
     }
 
     public function show(DownloadUrl $url)
     {
+        $this->authorizeOwner($url);
+
         $url->load(['sharedFile', 'accessLogs' => function ($query) {
             $query->latest();
         }]);
@@ -226,8 +303,17 @@ class DownloadUrlController extends Controller
 
     public function destroy(DownloadUrl $url)
     {
+        $this->authorizeOwner($url);
+
         $url->delete();
 
         return redirect()->route('urls.index')->with('success', 'URLを無効化しました');
+    }
+
+    private function authorizeOwner(DownloadUrl $url): void
+    {
+        if (Auth::user()->role !== 'admin' && $url->user_id !== Auth::id()) {
+            abort(403);
+        }
     }
 }

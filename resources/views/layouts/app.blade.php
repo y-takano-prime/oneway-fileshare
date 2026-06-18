@@ -13,37 +13,42 @@
         .axon-navbar {
             background: #ffffff;
             border-bottom: 2px solid #0066FF;
-            padding: 0 1.5rem;
-            height: 52px;
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
+            height: 78px;
             position: sticky;
             top: 0;
             z-index: 100;
         }
+        .axon-navbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 100%;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
         .axon-logo {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             text-decoration: none;
             color: #001240;
-            font-size: 16px;
+            font-size: 24px;
             font-weight: 600;
             letter-spacing: -0.02em;
             flex-shrink: 0;
         }
         .axon-logo-mark {
-            width: 24px;
-            height: 24px;
+            width: 36px;
+            height: 36px;
             background: #0066FF;
-            border-radius: 4px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .axon-nav-link {
-            color: #7090CC;
+            color: #001240;
             font-size: 13px;
             text-decoration: none;
             padding: 4px 10px;
@@ -54,26 +59,26 @@
         .axon-nav-link:hover { background: #E6F0FF; color: #0044CC; }
         .axon-nav-link.active { background: #E6F0FF; color: #0066FF; font-weight: 500; }
         .axon-nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-        .axon-user-chip {
-            font-size: 11px;
-            color: #7090CC;
-            letter-spacing: 0.02em;
-        }
-        .axon-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #E6F0FF;
-            color: #0066FF;
-            font-size: 11px;
-            font-weight: 600;
+        .axon-id-card {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 14px;
+        }
+        .axon-id-card-item {
+            font-size: 12px;
+            color: #001240;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .axon-id-card-name {
+            font-size: 12px;
+            color: #001240;
+            font-weight: 600;
+            white-space: nowrap;
         }
         .axon-logout {
             font-size: 12px;
-            color: #7090CC;
+            color: #001240;
             text-decoration: none;
             padding: 4px 10px;
             border: 1px solid #D0DEFF;
@@ -141,6 +146,7 @@
         .badge-dl          { background: #E6F0FF; color: #0044CC; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
         .badge-wait        { background: #FFF4E0; color: #9B6200; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
         .badge-expired     { background: #F2F2F2; color: #999; font-size: 11px; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+        .badge-invalidated { background: #FFF0F0; color: #CC0000; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
         .badge-business    { background: #EEF4FF; color: #0044CC; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
         .badge-recruitment { background: #E8F7F0; color: #006E42; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
         .badge-other       { background: #F5F0FF; color: #5500AA; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
@@ -275,9 +281,10 @@
 {{-- ヘッダーナビ --}}
 @auth
 <nav class="axon-navbar">
+<div class="axon-navbar-inner">
     <a href="{{ route('dashboard') }}" class="axon-logo">
         <div class="axon-logo-mark">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <svg width="20" height="20" viewBox="0 0 13 13" fill="none">
                 <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="white" stroke-width="1.8"/>
                 <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="white" stroke-width="1.8"/>
             </svg>
@@ -312,13 +319,25 @@
     @endif
 
     <div class="axon-nav-right">
-        <span class="axon-user-chip">{{ Auth::user()->name }}</span>
-        <div class="axon-avatar">{{ mb_substr(Auth::user()->name, 0, 2) }}</div>
+        <div class="axon-id-card">
+            @if(Auth::user()->company_id)
+            <span class="axon-id-card-item">{{ Auth::user()->company_id }}</span>
+            @endif
+            @if(Auth::user()->employee_code)
+            <span class="axon-id-card-item">{{ Auth::user()->employee_code }}</span>
+            @endif
+            <span class="axon-id-card-name">{{ Auth::user()->name }}</span>
+            @if(Auth::user()->deptName())
+            <span class="axon-id-card-item">{{ Auth::user()->deptName() }}</span>
+            @endif
+            <span class="axon-id-card-item">{{ Auth::user()->email }}</span>
+        </div>
         <form method="POST" action="{{ route('logout') }}" style="margin:0">
             @csrf
             <button type="submit" class="axon-logout">ログアウト</button>
         </form>
     </div>
+</div>
 </nav>
 @endauth
 

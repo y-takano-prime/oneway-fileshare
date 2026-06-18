@@ -34,8 +34,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('files', FileController::class)->only(['index', 'store', 'destroy']);
     Route::get('urls/create/step2', [DownloadUrlController::class, 'createStep2'])->name('urls.create_step2');
     Route::post('urls/step1', [DownloadUrlController::class, 'storeStep1'])->name('urls.store_step1');
-    Route::resource('urls', DownloadUrlController::class)->only(['index', 'create', 'store', 'show', 'destroy', 'edit', 'update']);
+    Route::resource('urls', DownloadUrlController::class)->only(['index', 'create', 'store']);
+    Route::get('urls/{url}', [DownloadUrlController::class, 'show'])->name('urls.show')->withTrashed();
+    Route::get('urls/{url}/edit', [DownloadUrlController::class, 'edit'])->name('urls.edit')->withTrashed();
+    Route::match(['put', 'patch'], 'urls/{url}', [DownloadUrlController::class, 'update'])->name('urls.update')->withTrashed();
+    Route::delete('urls/{url}', [DownloadUrlController::class, 'destroy'])->name('urls.destroy')->withTrashed();
     Route::get('urls/{url}/complete', [DownloadUrlController::class, 'complete'])->name('urls.complete');
+    Route::post('urls/{url}/send-mail', [DownloadUrlController::class, 'sendMail'])->name('urls.send_mail');
 
     // 管理者専用
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {

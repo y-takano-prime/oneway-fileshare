@@ -18,6 +18,11 @@
         .dl-file-size { font-size: 12px; color: #7090CC; margin: 0; }
         .dl-btn { background: #0066FF; color: #fff; border: none; border-radius: 6px; padding: 12px; font-size: 14px; font-weight: 500; width: 100%; cursor: pointer; text-align: center; text-decoration: none; display: block; }
         .dl-btn:hover { background: #0044CC; color: #fff; }
+        .dl-success { display: none; align-items: center; gap: 8px; background: #E9F9F0; border: 0.5px solid #B8E8CC; border-radius: 8px; padding: 12px 14px; margin-top: 1rem; }
+        .dl-success.show { display: flex; }
+        .dl-success-icon { flex-shrink: 0; width: 20px; height: 20px; background: #1A9F5C; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .dl-success-text { font-size: 13px; font-weight: 500; color: #0F7A45; }
+        .dl-note { background: #E6F0FF; border: 0.5px solid #B0CCFF; color: #0044CC; border-radius: 8px; padding: 10px 14px; font-size: 12px; margin-bottom: 1.25rem; }
     </style>
 </head>
 <body>
@@ -38,10 +43,39 @@
         <div class="dl-file">
             <p class="dl-file-name">{{ $url->sharedFile->original_name }}</p>
             <p class="dl-file-size">{{ number_format($url->sharedFile->file_size / 1024, 1) }} KB</p>
+            @if($url->download_limit)
+            <p class="dl-file-size">ダウンロード回数: <span id="dl-count">{{ $url->download_count }}</span> / {{ $url->download_limit }}回</p>
+            @endif
+            <p class="dl-file-size">削除予定日: {{ $deletionDate->format('Y年m月d日') }}</p>
         </div>
 
-        <a href="{{ route('download.file', $token) }}" class="dl-btn">ダウンロード</a>
+        @if($url->notify_on_download)
+        <div class="dl-note">ダウンロードすると、担当者に通知が送信されます。</div>
+        @endif
+
+        <a href="{{ route('download.file', $token) }}" id="dl-btn" class="dl-btn">ダウンロード</a>
+
+        <div id="dl-success" class="dl-success">
+            <div class="dl-success-icon">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="dl-success-text">ダウンロードが完了しました</span>
+        </div>
     </div>
 </div>
+<script>
+document.getElementById('dl-btn').addEventListener('click', function() {
+    var btn = this;
+    var success = document.getElementById('dl-success');
+    var countEl = document.getElementById('dl-count');
+    setTimeout(function() {
+        success.classList.add('show');
+        btn.textContent = '再ダウンロード';
+        if (countEl) {
+            countEl.textContent = parseInt(countEl.textContent, 10) + 1;
+        }
+    }, 400);
+});
+</script>
 </body>
 </html>

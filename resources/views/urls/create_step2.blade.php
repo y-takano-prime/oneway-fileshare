@@ -5,16 +5,9 @@
 
 {{-- ステップバー --}}
 <div class="axon-steps">
-    <div class="axon-step">1. ファイル選択</div>
-    <div class="axon-step active">2. 送付先設定</div>
+    <div class="axon-step">1. 送付先設定</div>
+    <div class="axon-step active">2. ファイル選択</div>
     <div class="axon-step">3. メール確認</div>
-</div>
-
-{{-- 選択ファイル表示 --}}
-<div class="axon-card" style="margin-bottom:1rem;display:flex;align-items:center;gap:10px">
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-    <span style="font-size:13px;font-weight:500;color:#001240">{{ $file->original_name }}</span>
-    <span style="font-size:12px;color:#7090CC;margin-left:auto">{{ round($file->file_size / 1024, 1) }} KB</span>
 </div>
 
 @if($errors->any())
@@ -25,80 +18,110 @@
 </div>
 @endif
 
-<div class="axon-card">
-    <form method="POST" action="{{ route('urls.store') }}">
-        @csrf
-        <div style="margin-bottom:1rem">
-            <label class="axon-label">属性 <span style="color:#CC0000">*</span></label>
-            <div style="display:flex;gap:8px;margin-top:4px">
-                @foreach(['business' => ['label'=>'取引先','class'=>'badge-business'], 'recruitment' => ['label'=>'採用','class'=>'badge-recruitment'], 'other' => ['label'=>'その他','class'=>'badge-other']] as $val => $opt)
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;padding:6px 14px;border:1px solid #D0DEFF;border-radius:6px;{{ old('category') === $val ? 'border-color:#0066FF;background:#F0F5FF' : '' }}">
-                    <input type="radio" name="category" value="{{ $val }}" style="accent-color:#0066FF" {{ old('category') === $val ? 'checked' : '' }} required>
-                    <span class="{{ $opt['class'] }}">{{ $opt['label'] }}</span>
-                </label>
-                @endforeach
-            </div>
-            @error('category')<div style="color:#CC0000;font-size:12px;margin-top:4px">{{ $message }}</div>@enderror
+<form method="POST" action="{{ route('urls.store') }}" enctype="multipart/form-data">
+    @csrf
+
+    {{-- アップロードエリア --}}
+    <div class="axon-card" style="margin-bottom:1rem">
+        <div style="font-size:11px;color:#7090CC;letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:10px">新規ファイルをアップロード</div>
+        <div id="upload-area" style="border:1.5px dashed #B8CCF0;border-radius:8px;padding:2.5rem;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:background .15s" onclick="document.getElementById('file-input').click()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7090CC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            <div style="font-size:13px;color:#7090CC">クリックまたはドラッグ＆ドロップでアップロード</div>
+            <div style="margin-top:6px;font-size:12px;color:#7090CC">対応形式：JPG, PNG, GIF, PDF, Word, Excel, PowerPoint, ZIP, CSV, TXT（1ファイルにつき最大100MB）</div>
+            <div id="file-name" style="margin-top:8px;font-size:13px;color:#0066FF;font-weight:500"></div>
         </div>
-        <div id="biz-fields">
-            <div style="margin-bottom:1rem">
-                <label class="axon-label">企業名（任意）</label>
-                <input type="text" name="company_name" value="{{ old('company_name') }}" class="axon-input" placeholder="例：株式会社〇〇">
-            </div>
-            <div style="margin-bottom:1rem">
-                <label class="axon-label">役職・部署（任意）</label>
-                <input type="text" name="recipient_title" value="{{ old('recipient_title') }}" class="axon-input" placeholder="例：営業部 部長">
-            </div>
+        <div style="margin-top:10px;background:#E6F0FF;border:0.5px solid #B0CCFF;color:#0044CC;border-radius:6px;padding:10px 14px;font-size:13px">
+            <strong>複数ファイルを送付する場合：</strong>
+            フォルダにまとめてZIPに圧縮してからアップロードしてください。1つのURLで相手先にまとめて届けられます。
         </div>
-        <div style="margin-bottom:1rem">
-            <label class="axon-label">相手先の名前</label>
-            <input type="text" name="recipient_name" value="{{ old('recipient_name') }}" class="axon-input" required>
-        </div>
-        <div style="margin-bottom:1rem">
-            <label class="axon-label">相手先メールアドレス</label>
-            <input type="email" name="recipient_email" value="{{ old('recipient_email') }}" class="axon-input" required>
-        </div>
-        <div style="margin-bottom:1rem">
-            <label class="axon-label">有効期限</label>
-            <input type="datetime-local" name="expires_at" value="{{ old('expires_at') }}" class="axon-input" required>
-        </div>
-        <div style="margin-bottom:1rem">
-            <label class="axon-label">ダウンロード回数上限（任意）</label>
-            <input type="number" name="download_limit" value="{{ old('download_limit') }}" class="axon-input" min="1" max="9999">
-        </div>
-        <div style="margin-bottom:1rem">
-            <label class="axon-label">備考（任意）</label>
-            <textarea name="memo" class="axon-input" rows="3" style="resize:vertical" placeholder="社内メモ・送付の目的など">{{ old('memo') }}</textarea>
-        </div>
-        <div style="margin-bottom:1.25rem;display:flex;align-items:center;gap:8px">
-            <input type="checkbox" name="notify_on_download" value="1" id="notify_on_download" {{ old('notify_on_download') ? 'checked' : '' }} style="accent-color:#0066FF;width:15px;height:15px">
-            <label for="notify_on_download" style="font-size:13px;color:#001240;cursor:pointer">ダウンロード時に通知する</label>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid #D4DFF5">
-            <a href="{{ route('urls.create') }}" class="btn-axon-ghost">← 戻る</a>
-            <button type="submit" class="btn-axon">URLを発行する →</button>
-        </div>
-    </form>
-</div>
+        <input type="file" id="file-input" name="upload_file" class="d-none">
+    </div>
+
+    {{-- アップロード済みから選択 --}}
+    <div class="axon-card" style="padding:0;overflow:hidden;margin-bottom:1rem">
+        <div style="padding:12px 16px;border-bottom:0.5px solid #D0DEFF;font-size:11px;color:#7090CC;letter-spacing:.04em;text-transform:uppercase;font-weight:600">アップロード済みから選択</div>
+        <table class="axon-table">
+            <thead>
+                <tr>
+                    <th style="width:40px"></th>
+                    <th>ファイル名</th>
+                    <th>サイズ</th>
+                    <th>アップロード日</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($files as $file)
+                <tr style="cursor:pointer" onclick="this.querySelector('input').click()">
+                    <td><input type="radio" name="shared_file_id" value="{{ $file->id }}" style="accent-color:#0066FF;width:15px;height:15px"></td>
+                    <td style="font-weight:500">
+                        {{ $file->original_name }}
+                        @if($file->category === 'business')
+                            <span class="badge-business">取引先</span>
+                        @elseif($file->category === 'recruitment')
+                            <span class="badge-recruitment">採用</span>
+                        @endif
+                    </td>
+                    <td style="color:#001240;font-size:12px">{{ round($file->file_size / 1024, 1) }} KB</td>
+                    <td style="color:#001240;font-size:12px">{{ $file->created_at->format('Y-m-d') }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="4" style="text-align:center;color:#7090CC;padding:1.5rem">アップロード済みのファイルがありません</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display:flex;justify-content:space-between">
+        <a href="{{ route('urls.create') }}" class="btn-axon-ghost">← 戻る</a>
+        <button type="submit" class="btn-axon">URLを発行する →</button>
+    </div>
+</form>
 @endsection
 
 @section('scripts')
 <script>
-function toggleBizFields() {
-    const checked = document.querySelector('input[name="category"]:checked');
-    const biz = document.getElementById('biz-fields');
-    if (checked && checked.value === 'recruitment') {
-        biz.style.display = 'none';
-        biz.querySelectorAll('input').forEach(function(el) { el.value = ''; });
-    } else {
-        biz.style.display = '';
-    }
+const uploadArea = document.getElementById('upload-area');
+const fileInput  = document.getElementById('file-input');
+const fileName   = document.getElementById('file-name');
+
+function clearRadioSelection() {
+    document.querySelectorAll('input[name="shared_file_id"]').forEach(r => r.checked = false);
+}
+function clearUploadSelection() {
+    fileInput.value = '';
+    fileName.textContent = '';
 }
 
-document.querySelectorAll('input[name="category"]').forEach(function(radio) {
-    radio.addEventListener('change', toggleBizFields);
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length) {
+        fileName.textContent = fileInput.files[0].name;
+        clearRadioSelection();
+    }
+});
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.background = '#EEF4FF'; });
+uploadArea.addEventListener('dragleave', () => { uploadArea.style.background = ''; });
+uploadArea.addEventListener('drop', e => {
+    e.preventDefault(); uploadArea.style.background = '';
+    if (e.dataTransfer.files.length) {
+        const dt = e.dataTransfer;
+        fileInput.files = dt.files;
+        fileName.textContent = dt.files[0].name;
+        clearRadioSelection();
+    }
 });
 
-toggleBizFields();
+// ラジオボタン：選択済みを再クリックで解除、新規アップロード選択は解除
+document.querySelectorAll('input[name="shared_file_id"]').forEach(radio => {
+    radio.addEventListener('mousedown', function() {
+        this._wasChecked = this.checked;
+    });
+    radio.addEventListener('click', function() {
+        if (this._wasChecked) {
+            this.checked = false;
+        } else {
+            clearUploadSelection();
+        }
+    });
+});
 </script>
 @endsection

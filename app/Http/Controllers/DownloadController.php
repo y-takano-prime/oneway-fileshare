@@ -164,7 +164,20 @@ class DownloadController extends Controller
         $this->log($url, 'otp_ok');
         $this->markVerified($token, 'otp_verified');
 
-        return view('download.complete', ['token' => $token, 'url' => $url]);
+        $deletionDate = $url->expires_at->copy()->addDays($this->graceDays());
+
+        return view('download.complete', ['token' => $token, 'url' => $url, 'deletionDate' => $deletionDate]);
+    }
+
+    private function graceDays(): int
+    {
+        if (Storage::exists('settings.json')) {
+            $settings = json_decode(Storage::get('settings.json'), true);
+
+            return $settings['cleanup_grace_days'] ?? 7;
+        }
+
+        return 7;
     }
 
     public function download($token)
@@ -175,7 +188,7 @@ class DownloadController extends Controller
             return $error;
         }
 
-        if (!$this->isVerified($token, 'otp_verified')) {
+        if (!$this->isVerified($token, 'otp_verified', 10)) {
             return redirect()->route('download.passcode', ['token' => $token]);
         }
 
@@ -195,17 +208,15 @@ class DownloadController extends Controller
 
     private function findUrl($token)
     {
-        $url = DownloadUrl::with('user', 'sharedFile')->where('token', $token)->first();
-
-        if (!$url) {
-            abort(404);
-        }
-
-        return $url;
+        return DownloadUrl::withTrashed()->with('user', 'sharedFile')->where('token', $token)->first();
     }
 
-    private function checkExpiry(DownloadUrl $url)
+    private function checkExpiry(?DownloadUrl $url)
     {
+        if (!$url || $url->trashed()) {
+            return view('download.error', ['reason' => 'invalid']);
+        }
+
         if ($url->expires_at->isPast()) {
             return view('download.error', ['reason' => 'expired']);
         }
@@ -217,14 +228,24 @@ class DownloadController extends Controller
         return null;
     }
 
-    private function isVerified($token, $step)
+    private function isVerified($token, $step, $ttlMinutes = null)
     {
-        return (bool) session("download_auth_{$token}.{$step}", false);
+        $verifiedAt = session("download_auth_{$token}.{$step}");
+
+        if (!$verifiedAt) {
+            return false;
+        }
+
+        if ($ttlMinutes !== null && now()->timestamp - $verifiedAt > $ttlMinutes * 60) {
+            return false;
+        }
+
+        return true;
     }
 
     private function markVerified($token, $step)
     {
-        session(["download_auth_{$token}.{$step}" => true]);
+        session(["download_auth_{$token}.{$step}" => now()->timestamp]);
     }
 
     private function log(DownloadUrl $url, $action)

@@ -23,7 +23,7 @@ class FileController extends Controller
             $query->where('original_name', 'like', "%{$q}%");
         }
 
-        $files = $query->latest()->get();
+        $files = $query->latest()->paginate(20)->withQueryString();
 
         $graceDays = 7;
         if (Storage::exists('settings.json')) {
@@ -68,6 +68,10 @@ class FileController extends Controller
 
     public function destroy(SharedFile $file)
     {
+        if (Auth::user()->role !== 'admin' && $file->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         Storage::delete($file->stored_path);
 
         DeletedFilesLog::create([

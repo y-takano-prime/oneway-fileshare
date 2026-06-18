@@ -16,7 +16,7 @@ class UserController extends Controller
         $users = User::leftJoin('depts', 'users.dept_id', '=', 'depts.id')
             ->select('users.*', 'depts.name as dept_name')
             ->latest('users.created_at')
-            ->get();
+            ->paginate(20);
 
         return view('admin.users.index', ['users' => $users]);
     }

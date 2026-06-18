@@ -24,7 +24,7 @@
     </div>
     <div class="axon-stat">
         <div class="axon-stat-num" style="font-size:18px">
-            {{ $storageUsedMb }}<span style="font-size:11px;color:#7090CC"> MB</span>
+            {{ $storageUsedMb }}<span style="font-size:11px;color:#7090CC"> / {{ $storageCapMb }} MB</span>
         </div>
         <div class="axon-stat-label">STORAGE（{{ $fileCount }}件）</div>
         <div class="axon-bar"><div class="axon-bar-fill" style="width:{{ $storagePercent }}%"></div></div>
@@ -43,13 +43,15 @@
                 @if(Auth::user()->role === 'admin')
                 <th>担当者</th>
                 @endif
-                <th>相手先</th>
+                <th style="white-space:nowrap">相手先</th>
+                <th>企業</th>
+                <th>役職部署</th>
                 <th>メールアドレス</th>
                 <th>属性</th>
                 <th>ファイル名</th>
                 <th>作成日</th>
                 <th>有効期限</th>
-                <th>DL数</th>
+                <th style="white-space:nowrap">DL数</th>
                 <th>状態</th>
             </tr>
         </thead>
@@ -61,10 +63,12 @@
             @endphp
             <tr>
                 @if(Auth::user()->role === 'admin')
-                <td>{{ $url->user->name ?? '-' }}</td>
+                <td style="white-space:nowrap">{{ $url->user->name ?? '-' }}</td>
                 @endif
-                <td style="font-weight:500">{{ $url->recipient_name }}</td>
-                <td style="color:#7090CC;font-size:12px">{{ $url->recipient_email }}</td>
+                <td style="font-weight:500;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_name }}">{{ $url->recipient_name }}</td>
+                <td style="color:#001240;font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->company_name }}">{{ $url->company_name ?: '—' }}</td>
+                <td style="color:#001240;font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_title }}">{{ $url->recipient_title ?: '—' }}</td>
+                <td style="color:#001240;font-size:12px">{{ $url->recipient_email }}</td>
                 <td>
                     @if($url->category === 'business')
                         <span class="badge-business">取引先</span>
@@ -81,9 +85,9 @@
                         {{ $url->sharedFile->original_name ?? '-' }}
                     </a>
                 </td>
-                <td style="color:#7090CC;font-size:12px">{{ $url->created_at->format('Y-m-d') }}</td>
+                <td style="color:#001240;font-size:12px;white-space:nowrap">{{ $url->created_at->format('Y-m-d') }}</td>
                 <td style="font-size:12px">{{ $url->expires_at->format('Y-m-d H:i') }}</td>
-                <td>{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
+                <td style="white-space:nowrap">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
                 <td>
                     @if($isExpired)
                         <span class="badge-expired">期限切れ</span>
@@ -95,7 +99,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="{{ Auth::user()->role === 'admin' ? 9 : 8 }}" style="text-align:center;color:#7090CC;padding:2rem">データがありません</td></tr>
+            <tr><td colspan="{{ Auth::user()->role === 'admin' ? 11 : 10 }}" style="text-align:center;color:#7090CC;padding:2rem">データがありません</td></tr>
             @endforelse
         </tbody>
     </table>

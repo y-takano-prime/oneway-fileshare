@@ -5,8 +5,8 @@
 
 {{-- ステップバー --}}
 <div class="axon-steps">
-    <div class="axon-step">1. ファイル選択</div>
-    <div class="axon-step">2. 送付先設定</div>
+    <div class="axon-step">1. 送付先設定</div>
+    <div class="axon-step">2. ファイル選択</div>
     <div class="axon-step active">3. メール確認</div>
 </div>
 
@@ -30,7 +30,7 @@
             <td style="font-size:11px;color:#7090CC;letter-spacing:.03em;text-transform:uppercase;padding:6px 0;font-weight:500">相手先</td>
             <td style="font-size:13px;color:#001240;padding:6px 0">
                 {{ $url->recipient_name }}
-                @if($url->recipient_title)<span style="color:#7090CC;font-size:12px;margin-left:6px">{{ $url->recipient_title }}</span>@endif
+                @if($url->recipient_title)<span style="color:#001240;font-size:12px;margin-left:6px">{{ $url->recipient_title }}</span>@endif
             </td>
         </tr>
         <tr>
@@ -61,6 +61,13 @@
     </div>
     <div style="padding:1rem">
         <textarea id="mail-text" class="axon-input" rows="18" style="font-size:12px;font-family:monospace;resize:vertical">{{ $mailText }}</textarea>
+    </div>
+    <div style="padding:0 1rem 1rem">
+        <form method="POST" action="{{ route('urls.send_mail', $url) }}" onsubmit="return confirm('このメール文章を相手先（'+{{ json_encode($url->recipient_email) }}+'）に送信しますか？')">
+            @csrf
+            <button type="submit" class="btn-axon">このメールを送信する</button>
+        </form>
+        <p style="font-size:11px;color:#7090CC;margin:6px 0 0">送信元はあなたのメールアドレス（{{ optional($url->user)->email }}）として届きます。</p>
     </div>
 </div>
 

@@ -2,7 +2,12 @@
 
 @section('content')
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
-    <h2 style="font-size:18px;font-weight:600;color:#001240;margin:0">URL詳細</h2>
+    <h2 style="font-size:18px;font-weight:600;color:#001240;margin:0">
+        URL詳細
+        @if($url->trashed())
+            <span class="badge-invalidated" style="margin-left:8px">無効化済み</span>
+        @endif
+    </h2>
     <a href="{{ route('urls.index') }}" class="btn-axon-ghost">← 一覧へ戻る</a>
 </div>
 
@@ -23,8 +28,8 @@
             <td style="font-size:11px;color:#7090CC;letter-spacing:.04em;text-transform:uppercase;padding:8px 0;font-weight:500">相手先</td>
             <td style="font-size:13px;color:#001240;padding:8px 0">
                 {{ $url->recipient_name }}
-                @if($url->recipient_title)<span style="color:#7090CC;font-size:12px;margin-left:6px">{{ $url->recipient_title }}</span>@endif
-                <span style="color:#7090CC;margin-left:8px">{{ $url->recipient_email }}</span>
+                @if($url->recipient_title)<span style="color:#001240;font-size:12px;margin-left:6px">{{ $url->recipient_title }}</span>@endif
+                <span style="color:#001240;margin-left:8px">{{ $url->recipient_email }}</span>
             </td>
         </tr>
         <tr>
@@ -56,9 +61,15 @@
         <td style="font-size:13px;color:#001240;padding:8px 0;white-space:pre-wrap">{{ $url->memo }}</td>
     </tr>
     @endif
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid #D4DFF5">
+    @unless($url->trashed())
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid #D4DFF5;display:flex;gap:8px">
         <a href="{{ route('urls.edit', $url) }}" class="btn-axon-outline" style="font-size:12px;padding:5px 12px">有効期限・上限を編集</a>
+        <form method="POST" action="{{ route('urls.destroy', $url) }}" onsubmit="return confirm('このURLを無効化しますか？')">
+            @csrf @method('DELETE')
+            <button type="submit" class="btn-axon-danger" style="font-size:12px;padding:5px 12px">URLを無効化</button>
+        </form>
     </div>
+    @endunless
 </div>
 
 {{-- メール文章 --}}
@@ -91,7 +102,7 @@
             @forelse($url->accessLogs as $log)
             <tr>
                 <td style="font-size:12px">{{ optional($log->created_at)->format('Y-m-d H:i:s') }}</td>
-                <td style="font-size:12px;color:#7090CC">{{ $log->ip_address }}</td>
+                <td style="font-size:12px;color:#001240">{{ $log->ip_address }}</td>
                 <td style="font-size:12px">{{ $log->action }}</td>
             </tr>
             @empty

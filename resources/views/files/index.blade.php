@@ -1,44 +1,40 @@
 @extends('layouts.app')
 
 @section('content')
-    <h2 class="mb-3">ファイル管理</h2>
+    <h2 style="font-size:18px;font-weight:600;color:#001240;margin:0 0 1.25rem">ファイル管理</h2>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <div id="drop-area" class="border border-dashed rounded p-5 text-center" style="cursor:pointer;">
-                <p class="mb-2">ここにファイルをドラッグ＆ドロップ、またはクリックして選択</p>
-                <input type="file" id="file-input" multiple class="d-none">
-            </div>
-            <div class="alert alert-info mt-3 mb-0">
-                <strong>複数ファイルを送付する場合：</strong>
-                まとめてZIPに圧縮してからアップロードしてください。1つのURLで相手先にまとめて届けられます。
-            </div>
-            <div id="progress-wrapper" class="mt-3 d-none">
-                <div class="progress">
-                    <div id="progress-bar" class="progress-bar" style="width:0%"></div>
-                </div>
-            </div>
-            <div id="upload-message" class="mt-2"></div>
+    <div class="axon-card" style="margin-bottom:1rem">
+        <div id="drop-area" style="border:1px dashed #B8CCF0;border-radius:8px;padding:2.5rem;text-align:center;cursor:pointer">
+            <p style="margin:0;color:#001240;font-size:13px">ここにファイルをドラッグ＆ドロップ、またはクリックして選択</p>
+            <p style="margin:8px 0 0;color:#7090CC;font-size:12px">対応形式：JPG, PNG, GIF, PDF, Word, Excel, PowerPoint, ZIP, CSV, TXT（1ファイルにつき最大100MB）</p>
+            <input type="file" id="file-input" multiple style="display:none">
         </div>
+        <div style="margin-top:1rem;background:#E6F0FF;border:0.5px solid #B0CCFF;color:#0044CC;border-radius:6px;padding:10px 14px;font-size:13px">
+            <strong>複数ファイルを送付する場合：</strong>
+            まとめてZIPに圧縮してからアップロードしてください。1つのURLで相手先にまとめて届けられます。
+        </div>
+        <div id="progress-wrapper" style="margin-top:1rem;display:none">
+            <div class="axon-bar">
+                <div id="progress-bar" class="axon-bar-fill" style="width:0%"></div>
+            </div>
+        </div>
+        <div id="upload-message" style="margin-top:8px;font-size:13px;color:#CC0000"></div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">アップロード済みファイル</h3>
+    <div class="axon-card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:0.5px solid #D0DEFF">
+            <span style="font-size:13px;font-weight:500;color:#001240">アップロード済みファイル</span>
         </div>
-        <div class="card-body pb-0">
-            <form method="GET" action="{{ route('files.index') }}" class="mb-3">
-                <div class="input-group" style="max-width: 400px;">
-                    <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="ファイル名で検索">
-                    <button type="submit" class="btn btn-outline-secondary">検索</button>
-                    @if(request('q'))
-                        <a href="{{ route('files.index') }}" class="btn btn-outline-danger">クリア</a>
-                    @endif
-                </div>
+        <div style="padding:12px 16px;border-bottom:0.5px solid #D0DEFF">
+            <form method="GET" action="{{ route('files.index') }}" style="display:flex;gap:8px;max-width:420px">
+                <input type="text" name="q" value="{{ request('q') }}" class="axon-input" placeholder="ファイル名で検索" style="flex:1">
+                <button type="submit" class="btn-axon-outline" style="white-space:nowrap">検索</button>
+                @if(request('q'))
+                    <a href="{{ route('files.index') }}" class="btn-axon-ghost" style="white-space:nowrap">クリア</a>
+                @endif
             </form>
         </div>
-        <div class="table-responsive">
-            <table class="table card-table table-vcenter">
+            <table class="axon-table">
                 <thead>
                     <tr>
                         <th>ファイル名</th>
@@ -55,54 +51,56 @@
                 <tbody>
                     @forelse ($files as $file)
                         <tr>
-                            <td>{{ $file->original_name }}</td>
+                            <td style="font-weight:500">{{ $file->original_name }}</td>
                             <td>
                                 {{ $file->download_urls_count }}件
                                 @if (Auth::user()->role !== 'admin' && $file->downloadUrls->isNotEmpty())
                                     @foreach ($file->downloadUrls as $u)
-                                        <div class="text-muted small">{{ $u->recipient_name ?: $u->recipient_email }}</div>
+                                        <div style="color:#7090CC;font-size:11px;margin-top:2px">{{ $u->recipient_name ?: $u->recipient_email }}</div>
                                     @endforeach
                                 @endif
                             </td>
                             @if (Auth::user()->role === 'admin')
                                 <td>{{ optional($file->user)->name ?? '-' }}</td>
                             @endif
-                            <td>{{ number_format($file->file_size / 1024, 1) }} KB</td>
-                            <td>{{ $file->created_at->format('Y-m-d H:i') }}</td>
+                            <td style="color:#001240;font-size:12px">{{ number_format($file->file_size / 1024, 1) }} KB</td>
+                            <td style="color:#001240;font-size:12px">{{ $file->created_at->format('Y-m-d H:i') }}</td>
                             <td>
                                 @php
                                     $earliestUrl = $file->downloadUrls->sortBy('expires_at')->first();
                                     $deletionDate = $earliestUrl ? $earliestUrl->expires_at->copy()->addDays($graceDays) : null;
                                 @endphp
                                 @if ($deletionDate)
-                                    {{ $deletionDate->format('Y-m-d') }}
+                                    <span style="font-size:12px">{{ $deletionDate->format('Y-m-d') }}</span>
                                     @if ($deletionDate->isPast())
-                                        <span class="badge bg-danger-lt ms-1">削除済</span>
+                                        <span class="badge-expired" style="margin-left:4px">削除済</span>
                                     @elseif ($deletionDate->diffInDays(now()) <= 3)
-                                        <span class="badge bg-warning-lt ms-1">まもなく</span>
+                                        <span class="badge-wait" style="margin-left:4px">まもなく</span>
                                     @endif
                                 @else
-                                    <span class="text-muted">-</span>
+                                    <span style="color:#B0C0E0;font-size:12px">—</span>
                                 @endif
                             </td>
-                            <td class="text-end">
+                            <td style="text-align:right;white-space:nowrap">
                                 @if (Auth::user()->role !== 'admin')
-                                    <a href="{{ route('urls.create', ['shared_file_id' => $file->id]) }}" class="btn btn-sm btn-primary">URL発行</a>
+                                    <a href="{{ route('urls.create', ['shared_file_id' => $file->id]) }}" class="btn-axon" style="padding:4px 10px;font-size:12px">URL発行</a>
                                 @endif
-                                <form method="POST" action="{{ route('files.destroy', $file) }}" class="d-inline" onsubmit="return confirm('削除しますか？')">
+                                <form method="POST" action="{{ route('files.destroy', $file) }}" style="display:inline" onsubmit="return confirm('削除しますか？')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">削除</button>
+                                    <button type="submit" class="btn-axon-danger" style="padding:4px 10px;font-size:12px">削除</button>
                                 </form>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted">ファイルがありません</td>
+                            <td colspan="{{ Auth::user()->role === 'admin' ? 7 : 6 }}" style="text-align:center;color:#7090CC;padding:2rem">ファイルがありません</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
+        <div style="padding:12px 16px;border-top:0.5px solid #D0DEFF">
+            {{ $files->links() }}
         </div>
     </div>
 @endsection
@@ -146,7 +144,7 @@
             xhr.open('POST', '{{ route('files.store') }}');
             xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
 
-            progressWrapper.classList.remove('d-none');
+            progressWrapper.style.display = 'block';
             progressBar.style.width = '0%';
             uploadMessage.textContent = '';
 
