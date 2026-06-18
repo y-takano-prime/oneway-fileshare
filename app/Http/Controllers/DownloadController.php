@@ -232,25 +232,26 @@ class DownloadController extends Controller
 
         // download_count の判定→加算を行単位ロックで直列化し、並列リクエストによる
         // ダウンロード回数上限のバイパスを防ぐ
-        $allowed = DB::transaction(function () use ($url) {
+        $result = DB::transaction(function () use ($url) {
             $locked = DownloadUrl::where('id', $url->id)->lockForUpdate()->first();
 
             if ($locked->download_limit !== null && $locked->download_count >= $locked->download_limit) {
-                return false;
+                return ['allowed' => false];
             }
 
             $locked->increment('download_count');
 
-            return true;
+            return ['allowed' => true, 'count' => $locked->download_count];
         });
 
-        if (!$allowed) {
+        if (!$result['allowed']) {
             return view('download.error', ['reason' => 'limit']);
         }
 
         $this->log($url, 'download');
 
-        if ($url->notify_on_download) {
+        // メールボム防止のため、担当者への通知は初回ダウンロード時のみ送信する
+        if ($url->notify_on_download && $result['count'] === 1) {
             try {
                 Mail::to($url->user->email)->send(new DownloadNotificationMail($url, request()->ip()));
             } catch (\Throwable $e) {
