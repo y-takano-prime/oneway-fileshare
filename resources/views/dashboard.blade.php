@@ -24,7 +24,7 @@
     </div>
     <div class="axon-stat">
         <div class="axon-stat-num" style="font-size:18px">
-            {{ $storageUsedMb }}<span style="font-size:11px;color:#7090CC"> / {{ $storageCapMb }} MB</span>
+            {{ $storageUsedMb }} MB<span style="font-size:11px;color:#7090CC"> / {{ round($storageCapMb / 1024, 1) }} GB</span>
         </div>
         <div class="axon-stat-label">STORAGE（{{ $fileCount }}件）</div>
         <div class="axon-bar"><div class="axon-bar-fill" style="width:{{ $storagePercent }}%"></div></div>

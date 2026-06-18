@@ -28,7 +28,7 @@ class DashboardController extends Controller
 
         $totalSize       = SharedFile::when(Auth::user()->role !== 'admin', fn($q) => $q->where('user_id', Auth::id()))->sum('file_size');
         $storageUsedMb   = round($totalSize / 1024 / 1024, 1);
-        $storageCapMb    = 1024;
+        $storageCapMb    = config('fileshare.storage_cap_mb');
         $storagePercent  = min(100, round($storageUsedMb / $storageCapMb * 100));
         $fileCount       = SharedFile::when(Auth::user()->role !== 'admin', fn($q) => $q->where('user_id', Auth::id()))->count();
 

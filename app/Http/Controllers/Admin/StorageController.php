@@ -10,7 +10,7 @@ class StorageController extends Controller
     public function index()
     {
         $totalSize = SharedFile::sum('file_size');
-        $storageCapMb = 1024;
+        $storageCapMb = config('fileshare.storage_cap_mb');
         $storageUsedMb = round($totalSize / 1024 / 1024, 1);
         $storagePercent = min(100, round($storageUsedMb / $storageCapMb * 100));
 

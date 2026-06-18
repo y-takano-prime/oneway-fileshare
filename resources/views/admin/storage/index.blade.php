@@ -7,7 +7,7 @@
 <div class="axon-card" style="margin-bottom:1.25rem">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
         <span style="font-size:13px;font-weight:500;color:#001240">全体使用量</span>
-        <span style="font-size:13px;color:#001240">{{ $storageUsedMb }} / {{ $storageCapMb }} MB</span>
+        <span style="font-size:13px;color:#001240">{{ $storageUsedMb }} MB / {{ round($storageCapMb / 1024, 1) }} GB</span>
     </div>
     <div class="axon-bar"><div class="axon-bar-fill" style="width:{{ $storagePercent }}%"></div></div>
 </div>
@@ -30,7 +30,7 @@
             @forelse($byUser as $row)
             @php
                 $rowMb = round($row->total_size / 1024 / 1024, 1);
-                $rowPercent = $totalSize > 0 ? round($row->total_size / $totalSize * 100) : 0;
+                $rowPercent = $storageCapMb > 0 ? round($rowMb / $storageCapMb * 100, 1) : 0;
             @endphp
             <tr>
                 <td style="font-weight:500;white-space:nowrap">{{ optional($row->user)->name ?? '(削除済みユーザー)' }}</td>
