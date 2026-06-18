@@ -289,15 +289,16 @@ class DownloadUrlController extends Controller
     {
         $this->authorizeOwner($url);
 
-        $url->load(['sharedFile', 'accessLogs' => function ($query) {
-            $query->latest();
-        }]);
+        $url->load('sharedFile');
+
+        $accessLogs = $url->accessLogs()->latest()->paginate(20)->withQueryString();
 
         $mailText = $this->buildMailText($url);
 
         return view('urls.show', [
             'url' => $url,
             'mailText' => $mailText,
+            'accessLogs' => $accessLogs,
         ]);
     }
 

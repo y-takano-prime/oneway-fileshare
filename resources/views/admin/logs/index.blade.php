@@ -19,7 +19,7 @@
                         <td style="color:#001240;font-size:12px">{{ optional($log->created_at)->format('Y-m-d H:i:s') }}</td>
                         <td style="font-weight:500">{{ $log->downloadUrl->sharedFile->original_name ?? '-' }}</td>
                         <td style="color:#001240;font-size:12px">{{ $log->ip_address }}</td>
-                        <td>{{ $log->action }}</td>
+                        <td>{{ $log->action_label }}</td>
                     </tr>
                 @empty
                     <tr>

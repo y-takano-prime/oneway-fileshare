@@ -8,7 +8,9 @@ use App\Models\AccessLog;
 use App\Models\AuthCode;
 use App\Models\DownloadUrl;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 
 class DownloadController extends Controller
@@ -43,6 +45,18 @@ class DownloadController extends Controller
         if (!$this->isVerified($token, 'passcode_verified')) {
             return redirect()->route('download.passcode', ['token' => $token]);
         }
+
+        $rateLimitKey = 'verify-email:' . $token;
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            return view('download.passcode', [
+                'token' => $token,
+                'step' => 'email',
+                'error' => '試行回数が多すぎます。しばらく時間をおいて再度お試しください。',
+            ]);
+        }
+
+        RateLimiter::hit($rateLimitKey, 900);
 
         if ($request->input('email') !== $url->recipient_email) {
             $this->log($url, 'email_fail');
@@ -120,46 +134,70 @@ class DownloadController extends Controller
             return redirect()->route('download.passcode', ['token' => $token]);
         }
 
-        $authCode = $url->authCode;
+        // failed_count/lock_until の読み取り→更新を行単位ロックで直列化し、
+        // 並列リクエストによる5回ロックアウトの回避を防ぐ
+        $result = DB::transaction(function () use ($url, $request) {
+            $authCode = AuthCode::where('download_url_id', $url->id)
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->first();
 
-        if (!$authCode) {
-            return redirect()->route('download.passcode', ['token' => $token]);
-        }
-
-        if ($authCode->lock_until && $authCode->lock_until->isFuture()) {
-            return view('download.otp', [
-                'token' => $token,
-                'locked' => true,
-                'lockUntil' => $authCode->lock_until,
-            ]);
-        }
-
-        if ($authCode->expires_at->isPast()) {
-            return view('download.otp', [
-                'token' => $token,
-                'error' => 'コードの有効期限が切れました。再度URLにアクセスしてください',
-            ]);
-        }
-
-        if (!hash_equals($authCode->code, (string) $request->input('code'))) {
-            $authCode->failed_count += 1;
-
-            if ($authCode->failed_count >= 5) {
-                $authCode->lock_until = now()->addMinutes(30);
+            if (!$authCode) {
+                return ['type' => 'no_code'];
             }
 
+            if ($authCode->lock_until && $authCode->lock_until->isFuture()) {
+                return ['type' => 'locked', 'lockUntil' => $authCode->lock_until];
+            }
+
+            if ($authCode->expires_at->isPast()) {
+                return ['type' => 'code_expired'];
+            }
+
+            if (!hash_equals($authCode->code, (string) $request->input('code'))) {
+                $authCode->failed_count += 1;
+
+                if ($authCode->failed_count >= 5) {
+                    $authCode->lock_until = now()->addMinutes(30);
+                }
+
+                $authCode->save();
+
+                return ['type' => 'wrong_code', 'remaining' => max(0, 5 - $authCode->failed_count)];
+            }
+
+            $authCode->used_at = now();
             $authCode->save();
-            $this->log($url, 'otp_fail');
 
-            return view('download.otp', [
-                'token' => $token,
-                'error' => 'コードが正しくありません',
-                'remaining' => max(0, 5 - $authCode->failed_count),
-            ]);
+            return ['type' => 'success'];
+        });
+
+        switch ($result['type']) {
+            case 'no_code':
+                return redirect()->route('download.passcode', ['token' => $token]);
+
+            case 'locked':
+                return view('download.otp', [
+                    'token' => $token,
+                    'locked' => true,
+                    'lockUntil' => $result['lockUntil'],
+                ]);
+
+            case 'code_expired':
+                return view('download.otp', [
+                    'token' => $token,
+                    'error' => 'コードの有効期限が切れました。再度URLにアクセスしてください',
+                ]);
+
+            case 'wrong_code':
+                $this->log($url, 'otp_fail');
+
+                return view('download.otp', [
+                    'token' => $token,
+                    'error' => 'コードが正しくありません',
+                    'remaining' => $result['remaining'],
+                ]);
         }
-
-        $authCode->used_at = now();
-        $authCode->save();
 
         $this->log($url, 'otp_ok');
         $this->markVerified($token, 'otp_verified');
@@ -192,7 +230,24 @@ class DownloadController extends Controller
             return redirect()->route('download.passcode', ['token' => $token]);
         }
 
-        $url->increment('download_count');
+        // download_count の判定→加算を行単位ロックで直列化し、並列リクエストによる
+        // ダウンロード回数上限のバイパスを防ぐ
+        $allowed = DB::transaction(function () use ($url) {
+            $locked = DownloadUrl::where('id', $url->id)->lockForUpdate()->first();
+
+            if ($locked->download_limit !== null && $locked->download_count >= $locked->download_limit) {
+                return false;
+            }
+
+            $locked->increment('download_count');
+
+            return true;
+        });
+
+        if (!$allowed) {
+            return view('download.error', ['reason' => 'limit']);
+        }
+
         $this->log($url, 'download');
 
         if ($url->notify_on_download) {

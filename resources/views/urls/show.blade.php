@@ -99,17 +99,20 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($url->accessLogs as $log)
+            @forelse($accessLogs as $log)
             <tr>
                 <td style="font-size:12px">{{ optional($log->created_at)->format('Y-m-d H:i:s') }}</td>
                 <td style="font-size:12px;color:#001240">{{ $log->ip_address }}</td>
-                <td style="font-size:12px">{{ $log->action }}</td>
+                <td style="font-size:12px">{{ $log->action_label }}</td>
             </tr>
             @empty
             <tr><td colspan="3" style="text-align:center;color:#7090CC;padding:1.5rem">ログがありません</td></tr>
             @endforelse
         </tbody>
     </table>
+    <div style="padding:12px 16px;border-top:0.5px solid #D0DEFF">
+        {{ $accessLogs->links() }}
+    </div>
 </div>
 @endsection
 
