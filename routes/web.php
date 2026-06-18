@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AccessLogController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\StorageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
@@ -46,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', UserController::class);
         Route::get('logs', [AccessLogController::class, 'index'])->name('logs.index');
+        Route::get('storage', [StorageController::class, 'index'])->name('storage.index');
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
     });

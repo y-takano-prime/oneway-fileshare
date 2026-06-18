@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Mail\DeleteNotificationMail;
 use App\Models\DeletedFilesLog;
 use App\Models\DownloadUrl;
+use App\Models\SharedFile;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -32,20 +33,38 @@ class CleanupExpiredFiles extends Command
                 Mail::to($url->user->email)->send(new DeleteNotificationMail($url, $deletionDate));
             }
 
-            if ($deletionDate->isPast()) {
-                Storage::delete($url->sharedFile->stored_path);
+            if (!$deletionDate->isPast()) {
+                continue;
+            }
+
+            $sharedFile = $url->sharedFile;
+
+            $url->forceDelete();
+
+            if ($sharedFile && !$this->fileStillNeeded($sharedFile, $graceDays)) {
+                Storage::delete($sharedFile->stored_path);
 
                 DeletedFilesLog::create([
-                    'original_name' => $url->sharedFile->original_name,
-                    'stored_path' => $url->sharedFile->stored_path,
+                    'original_name' => $sharedFile->original_name,
+                    'stored_path' => $sharedFile->stored_path,
                     'deleted_by' => $url->user_id,
                 ]);
 
-                $url->forceDelete();
+                $sharedFile->delete();
             }
         }
 
         $this->info('クリーンアップ処理が完了しました');
+    }
+
+    private function fileStillNeeded(SharedFile $sharedFile, int $graceDays): bool
+    {
+        return DownloadUrl::withTrashed()
+            ->where('shared_file_id', $sharedFile->id)
+            ->get()
+            ->contains(function (DownloadUrl $url) use ($graceDays) {
+                return !$url->expires_at->copy()->addDays($graceDays)->isPast();
+            });
     }
 
     private function loadSettings()

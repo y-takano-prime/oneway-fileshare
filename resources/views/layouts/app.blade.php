@@ -313,6 +313,9 @@
     <a href="{{ route('admin.logs.index') }}" class="axon-nav-link {{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
         ログ
     </a>
+    <a href="{{ route('admin.storage.index') }}" class="axon-nav-link {{ request()->routeIs('admin.storage.*') ? 'active' : '' }}">
+        ストレージ
+    </a>
     <a href="{{ route('admin.settings.index') }}" class="axon-nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
         設定
     </a>
