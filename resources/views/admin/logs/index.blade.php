@@ -3,6 +3,22 @@
 @section('content')
     <h2 style="font-size:18px;font-weight:600;color:#001240;margin:0 0 1.25rem">アクセスログ</h2>
 
+    {{-- フィルタータブ --}}
+    @php
+        $tabs = ['all' => '全件', 'failed' => '失敗のみ', 'download' => 'ダウンロード'];
+    @endphp
+    <div style="display:flex;gap:4px;margin-bottom:1rem">
+        @foreach($tabs as $key => $label)
+        @php $isActive = $status === $key; @endphp
+        <a href="{{ route('admin.logs.index', ['status' => $key]) }}"
+           style="font-size:12px;padding:5px 12px;border-radius:20px;text-decoration:none;border:1px solid;
+                  {{ $isActive ? 'background:#0066FF;color:#fff;border-color:#0066FF;font-weight:500' : 'background:#fff;color:#7090CC;border-color:#D0DEFF' }}">
+            {{ $label }}
+            <span style="font-size:11px;{{ $isActive ? 'opacity:.8' : 'color:#B0C0E0' }}">{{ $counts[$key] }}</span>
+        </a>
+        @endforeach
+    </div>
+
     <div class="axon-card" style="padding:0;overflow:hidden">
         <table class="axon-table">
             <thead>
