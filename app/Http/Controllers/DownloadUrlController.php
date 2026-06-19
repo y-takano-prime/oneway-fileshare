@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Mail\FileShareNotificationMail;
+use App\Mail\StorageWarningMail;
 use App\Models\DownloadUrl;
 use App\Models\SharedFile;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -40,40 +43,48 @@ class DownloadUrlController extends Controller
             });
         }
 
-        // タブ用カウント（フィルター適用前）
+        // タブ用カウント（検索条件のみ反映、状態・属性フィルター適用前）
         $counts = [
-            'all'         => (clone $query)->whereNull('deleted_at')->count(),
             'wait'        => (clone $query)->whereNull('deleted_at')->where('expires_at', '>', now())->where('download_count', 0)->count(),
-            'done'        => (clone $query)->whereNull('deleted_at')->where('download_count', '>', 0)->count(),
+            'done'        => (clone $query)->whereNull('deleted_at')->where('expires_at', '>', now())->where('download_count', '>', 0)->count(),
             'expired'     => (clone $query)->whereNull('deleted_at')->where('expires_at', '<=', now())->count(),
             'invalidated' => (clone $query)->whereNotNull('deleted_at')->count(),
         ];
 
         $categoryCounts = [
-            'all'         => (clone $query)->whereNull('deleted_at')->count(),
             'business'    => (clone $query)->whereNull('deleted_at')->where('category', 'business')->count(),
             'recruitment' => (clone $query)->whereNull('deleted_at')->where('category', 'recruitment')->count(),
             'other'       => (clone $query)->whereNull('deleted_at')->where('category', 'other')->count(),
         ];
 
-        // 状態フィルター
-        $status = $request->input('status', 'all');
-        if ($status === 'invalidated') {
-            $query->whereNotNull('deleted_at');
-        } elseif ($status === 'wait') {
-            $query->whereNull('deleted_at')->where('expires_at', '>', now())->where('download_count', 0);
-        } elseif ($status === 'done') {
-            $query->whereNull('deleted_at')->where('download_count', '>', 0);
-        } elseif ($status === 'expired') {
-            $query->whereNull('deleted_at')->where('expires_at', '<=', now());
-        } else {
-            $query->whereNull('deleted_at');
+        // 状態フィルター（複数選択、OR結合）
+        $statusOptions = ['wait', 'done', 'expired', 'invalidated'];
+        $selectedStatuses = array_values(array_intersect((array) $request->input('status', []), $statusOptions));
+
+        if ($selectedStatuses) {
+            $query->where(function ($q) use ($selectedStatuses) {
+                foreach ($selectedStatuses as $s) {
+                    $q->orWhere(function ($q2) use ($s) {
+                        if ($s === 'invalidated') {
+                            $q2->whereNotNull('deleted_at');
+                        } elseif ($s === 'wait') {
+                            $q2->whereNull('deleted_at')->where('expires_at', '>', now())->where('download_count', 0);
+                        } elseif ($s === 'done') {
+                            $q2->whereNull('deleted_at')->where('expires_at', '>', now())->where('download_count', '>', 0);
+                        } elseif ($s === 'expired') {
+                            $q2->whereNull('deleted_at')->where('expires_at', '<=', now());
+                        }
+                    });
+                }
+            });
         }
 
-        // 属性フィルター
-        $category = $request->input('category', 'all');
-        if (in_array($category, ['business', 'recruitment', 'other'])) {
-            $query->where('category', $category);
+        // 属性フィルター（複数選択、OR結合）
+        $categoryOptions = ['business', 'recruitment', 'other'];
+        $selectedCategories = array_values(array_intersect((array) $request->input('category', []), $categoryOptions));
+
+        if ($selectedCategories) {
+            $query->whereIn('category', $selectedCategories);
         }
 
         // ソート
@@ -85,7 +96,7 @@ class DownloadUrlController extends Controller
 
         $staffQ = $request->input('staff_q', '');
 
-        return view('urls.index', compact('urls', 'status', 'category', 'sort', 'dir', 'counts', 'categoryCounts', 'staffQ'));
+        return view('urls.index', compact('urls', 'selectedStatuses', 'selectedCategories', 'sort', 'dir', 'counts', 'categoryCounts', 'staffQ'));
     }
 
     public function edit(DownloadUrl $url)
@@ -186,6 +197,8 @@ class DownloadUrlController extends Controller
             $storedName = Str::uuid()->toString() . ($file->getClientOriginalExtension() ? '.' . $file->getClientOriginalExtension() : '');
             $path = $file->storeAs('uploads/' . Auth::id(), $storedName);
 
+            $beforeMb = round(SharedFile::where('user_id', Auth::id())->sum('file_size') / 1024 / 1024, 1);
+
             $sharedFile = SharedFile::create([
                 'user_id'       => Auth::id(),
                 'original_name' => $file->getClientOriginalName(),
@@ -194,6 +207,8 @@ class DownloadUrlController extends Controller
                 'mime_type'     => $file->getMimeType(),
                 'category'      => null,
             ]);
+
+            $this->notifyStorageWarningIfCrossed(Auth::id(), $beforeMb);
 
             $fileId = $sharedFile->id;
         } else {
@@ -219,6 +234,35 @@ class DownloadUrlController extends Controller
         session()->forget('create_recipient');
 
         return redirect()->route('urls.complete', $url);
+    }
+
+    private function notifyStorageWarningIfCrossed($userId, $beforeMb)
+    {
+        $capMb = config('fileshare.storage_cap_mb');
+        $threshold = 80;
+        if (Storage::exists('settings.json')) {
+            $settings = json_decode(Storage::get('settings.json'), true);
+            $threshold = $settings['storage_warning_threshold'] ?? 80;
+        }
+
+        $beforePercent = $beforeMb / $capMb * 100;
+        $afterMb = round(SharedFile::where('user_id', $userId)->sum('file_size') / 1024 / 1024, 1);
+        $afterPercent = $afterMb / $capMb * 100;
+
+        if ($beforePercent >= $threshold || $afterPercent < $threshold) {
+            return;
+        }
+
+        $targetUser = User::find($userId);
+        $admins = User::where('role', 'admin')->where('is_active', true)->get();
+
+        foreach ($admins as $admin) {
+            try {
+                Mail::to($admin->email)->send(new StorageWarningMail($targetUser, $afterMb, $capMb, round($afterPercent, 1)));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('ストレージ警告メールの送信に失敗しました: ' . $e->getMessage());
+            }
+        }
     }
 
     private function buildMailBody(DownloadUrl $url): string

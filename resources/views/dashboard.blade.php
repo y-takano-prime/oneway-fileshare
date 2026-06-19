@@ -8,6 +8,12 @@
     @endif
 </div>
 
+@if(Auth::user()->role !== 'admin' && $storagePercent >= $storageWarningThreshold)
+<div class="axon-alert-warning">
+    ストレージ使用量が全体容量の{{ $storagePercent }}%に達しています（警告しきい値: {{ $storageWarningThreshold }}%）。不要なファイルの削除をご検討ください。
+</div>
+@endif
+
 {{-- メトリクスカード --}}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem">
     <div class="axon-stat">
@@ -27,7 +33,7 @@
             {{ $storageUsedMb }} MB<span style="font-size:11px;color:#7090CC"> / {{ round($storageCapMb / 1024, 1) }} GB</span>
         </div>
         <div class="axon-stat-label">STORAGE（{{ $fileCount }}件）</div>
-        <div class="axon-bar"><div class="axon-bar-fill" style="width:{{ $storagePercent }}%"></div></div>
+        <div class="axon-bar"><div class="axon-bar-fill{{ Auth::user()->role !== 'admin' && $storagePercent >= $storageWarningThreshold ? ' warn' : '' }}" style="width:{{ $storagePercent }}%"></div></div>
     </div>
 </div>
 
@@ -61,14 +67,14 @@
                 $isExpired = $url->expires_at->isPast();
                 $isDone    = $url->download_count > 0;
             @endphp
-            <tr>
+            <tr class="{{ $isExpired ? 'row-expired' : '' }}">
                 @if(Auth::user()->role === 'admin')
                 <td style="white-space:nowrap">{{ $url->user->name ?? '-' }}</td>
                 @endif
                 <td style="font-weight:500;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_name }}">{{ $url->recipient_name }}</td>
-                <td style="color:#001240;font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->company_name }}">{{ $url->company_name ?: '—' }}</td>
-                <td style="color:#001240;font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_title }}">{{ $url->recipient_title ?: '—' }}</td>
-                <td style="color:#001240;font-size:12px">{{ $url->recipient_email }}</td>
+                <td style="color:#001240;font-size:13px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->company_name }}">{{ $url->company_name ?: '—' }}</td>
+                <td style="color:#001240;font-size:13px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_title }}">{{ $url->recipient_title ?: '—' }}</td>
+                <td style="color:#001240;font-size:13px">{{ $url->recipient_email }}</td>
                 <td>
                     @if($url->category === 'business')
                         <span class="badge-business">取引先</span>
@@ -77,7 +83,7 @@
                     @elseif($url->category === 'other')
                         <span class="badge-other">その他</span>
                     @else
-                        <span style="color:#B0C0E0;font-size:12px">—</span>
+                        <span style="color:#B0C0E0;font-size:13px">—</span>
                     @endif
                 </td>
                 <td>
@@ -85,8 +91,8 @@
                         {{ $url->sharedFile->original_name ?? '-' }}
                     </a>
                 </td>
-                <td style="color:#001240;font-size:12px;white-space:nowrap">{{ $url->created_at->format('Y-m-d') }}</td>
-                <td style="font-size:12px">{{ $url->expires_at->format('Y-m-d H:i') }}</td>
+                <td style="color:#001240;font-size:13px;white-space:nowrap">{{ $url->created_at->format('Y-m-d') }}</td>
+                <td style="font-size:13px">{{ $url->expires_at->format('Y-m-d H:i') }}</td>
                 <td style="white-space:nowrap">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
                 <td>
                     @if($isExpired)

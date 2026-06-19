@@ -61,22 +61,74 @@
         .axon-nav-link:hover { background: #E6F0FF; color: #0044CC; border-color: #B0CCFF; }
         .axon-nav-link.active { background: #0066FF; color: #fff; border-color: #0066FF; font-weight: 500; }
         .axon-nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-        .axon-id-card {
+        .axon-id-dropdown { position: relative; }
+        .axon-id-trigger {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 8px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px 4px 4px;
+            border-radius: 20px;
         }
-        .axon-id-card-item {
+        .axon-id-trigger:hover { background: #EEF4FF; }
+        .axon-id-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #0066FF;
+            color: #fff;
             font-size: 12px;
-            color: #001240;
-            letter-spacing: 0.02em;
-            white-space: nowrap;
-        }
-        .axon-id-card-name {
-            font-size: 12px;
-            color: #001240;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .axon-id-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #001240;
             white-space: nowrap;
+        }
+        .axon-id-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: #fff;
+            border: 0.5px solid #D0DEFF;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 18, 64, 0.12);
+            padding: 2px 18px;
+            min-width: 240px;
+            z-index: 200;
+            text-align: center;
+        }
+        .axon-id-menu.open { display: block; }
+        .axon-id-menu-row {
+            padding: 10px 0;
+            border-bottom: 0.5px solid #D0DEFF;
+        }
+        .axon-id-menu-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #001240;
+            letter-spacing: 0.08em;
+            padding: 12px 0 10px;
+        }
+        .axon-id-menu-meta {
+            font-size: 13px;
+            color: #001240;
+        }
+        .axon-id-menu-email {
+            font-size: 13px;
+            color: #001240;
+            word-break: break-all;
+        }
+        .axon-id-menu-logout {
+            padding: 10px 0 12px;
         }
         .axon-logout {
             font-size: 12px;
@@ -125,7 +177,7 @@
         /* テーブル */
         .axon-table { width: 100%; border-collapse: collapse; }
         .axon-table th {
-            font-size: 11px;
+            font-size: 12px;
             color: #4A6595;
             letter-spacing: 0.05em;
             text-transform: uppercase;
@@ -136,26 +188,29 @@
         }
         .axon-table td {
             padding: 10px 12px;
-            font-size: 13px;
+            font-size: 14px;
             color: #001240;
             border-bottom: 1px solid #D4DFF5;
             vertical-align: middle;
         }
         .axon-table tr:hover td { background: #EEF4FF; }
         .axon-table tr:last-child td { border-bottom: none; }
+        .axon-table tr.row-expired td { background: #E4E4E6; }
+        .axon-table tr.row-invalidated td { background: #FFF0F0; }
 
         /* バッジ */
-        .badge-dl          { background: #E6F0FF; color: #0044CC; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
-        .badge-wait        { background: #FFF4E0; color: #9B6200; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
-        .badge-expired     { background: #F2F2F2; color: #999; font-size: 11px; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
-        .badge-invalidated { background: #FFF0F0; color: #CC0000; font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
-        .badge-business    { background: #EEF4FF; color: #0044CC; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
-        .badge-recruitment { background: #E8F7F0; color: #006E42; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
-        .badge-other       { background: #F5F0FF; color: #5500AA; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
+        .badge-dl          { background: #E6F0FF; color: #0044CC; font-size: 12px; padding: 3px 9px; border-radius: 20px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
+        .badge-wait        { background: #FFF4E0; color: #9B6200; font-size: 12px; padding: 3px 9px; border-radius: 20px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
+        .badge-expired     { background: #E3E3E3; color: #5C5C5C; font-size: 12px; padding: 3px 9px; border-radius: 20px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
+        .badge-invalidated { background: #FFF0F0; color: #CC0000; font-size: 12px; padding: 3px 9px; border-radius: 20px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
+        .badge-business    { background: #EEF4FF; color: #0044CC; font-size: 12px; padding: 3px 9px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
+        .badge-recruitment { background: #E8F7F0; color: #006E42; font-size: 12px; padding: 3px 9px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
+        .badge-other       { background: #F5F0FF; color: #5500AA; font-size: 12px; padding: 3px 9px; border-radius: 4px; font-weight: 500; white-space: nowrap; letter-spacing: .01em; }
 
         /* ストレージバー */
         .axon-bar { height: 4px; background: #D0DEFF; border-radius: 2px; overflow: hidden; margin-top: 8px; }
         .axon-bar-fill { height: 100%; background: #0066FF; border-radius: 2px; }
+        .axon-bar-fill.warn { background: #D4880A; }
 
         /* ボタン */
         .btn-axon {
@@ -242,6 +297,40 @@
             font-weight: 500;
         }
 
+        /* チェックボックス式フィルターピル */
+        .axon-checkbox-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid #D0DEFF;
+            background: #fff;
+            color: #7090CC;
+            cursor: pointer;
+            user-select: none;
+        }
+        .axon-checkbox-pill input[type="checkbox"] {
+            accent-color: #0066FF;
+            width: 13px;
+            height: 13px;
+            margin: 0;
+        }
+        .axon-checkbox-pill:has(input:checked) {
+            background: #0066FF;
+            color: #fff;
+            border-color: #0066FF;
+            font-weight: 500;
+        }
+        .axon-checkbox-pill-count {
+            font-size: 11px;
+            color: #B0C0E0;
+        }
+        .axon-checkbox-pill:has(input:checked) .axon-checkbox-pill-count {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         /* アラート */
         .axon-alert-success {
             background: #E6F0FF;
@@ -256,6 +345,15 @@
             background: #FFF0F0;
             border: 0.5px solid #FFB0B0;
             color: #CC0000;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 13px;
+            margin-bottom: 1rem;
+        }
+        .axon-alert-warning {
+            background: #FFF4E0;
+            border: 0.5px solid #FFD699;
+            color: #9B6200;
             border-radius: 6px;
             padding: 10px 14px;
             font-size: 13px;
@@ -324,23 +422,31 @@
     @endif
 
     <div class="axon-nav-right">
-        <div class="axon-id-card">
-            @if(Auth::user()->company_id)
-            <span class="axon-id-card-item">{{ Auth::user()->company_id }}</span>
-            @endif
-            @if(Auth::user()->employee_code)
-            <span class="axon-id-card-item">{{ Auth::user()->employee_code }}</span>
-            @endif
-            <span class="axon-id-card-name">{{ Auth::user()->name }}</span>
-            @if(Auth::user()->deptName())
-            <span class="axon-id-card-item">{{ Auth::user()->deptName() }}</span>
-            @endif
-            <span class="axon-id-card-item">{{ Auth::user()->email }}</span>
+        @php
+            $idMetaParts = array_filter([
+                Auth::user()->company_id,
+                Auth::user()->employee_code,
+                Auth::user()->deptName(),
+            ]);
+        @endphp
+        <div class="axon-id-dropdown">
+            <button type="button" id="axon-id-trigger" class="axon-id-trigger">
+                <div class="axon-id-avatar">{{ mb_substr(Auth::user()->name, 0, 1) }}</div>
+                <span class="axon-id-name">{{ Auth::user()->name }}</span>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#7090CC" stroke-width="1.5"/></svg>
+            </button>
+            <div id="axon-id-menu" class="axon-id-menu">
+                @if($idMetaParts)
+                <div class="axon-id-menu-row axon-id-menu-meta">{{ implode(' / ', $idMetaParts) }}</div>
+                @endif
+                <div class="axon-id-menu-row axon-id-menu-name">{{ Auth::user()->name }}</div>
+                <div class="axon-id-menu-row axon-id-menu-email">{{ Auth::user()->email }}</div>
+                <form method="POST" action="{{ route('logout') }}" class="axon-id-menu-logout">
+                    @csrf
+                    <button type="submit" class="axon-logout" style="width:100%">ログアウト</button>
+                </form>
+            </div>
         </div>
-        <form method="POST" action="{{ route('logout') }}" style="margin:0">
-            @csrf
-            <button type="submit" class="axon-logout">ログアウト</button>
-        </form>
     </div>
 </div>
 </nav>
@@ -359,6 +465,18 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
+<script>
+document.addEventListener('click', function (e) {
+    var trigger = document.getElementById('axon-id-trigger');
+    var menu = document.getElementById('axon-id-menu');
+    if (!trigger || !menu) return;
+    if (trigger.contains(e.target)) {
+        menu.classList.toggle('open');
+    } else if (!menu.contains(e.target)) {
+        menu.classList.remove('open');
+    }
+});
+</script>
 @yield('scripts')
 </body>
 </html>

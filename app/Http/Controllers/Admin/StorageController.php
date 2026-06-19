@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SharedFile;
+use Illuminate\Support\Facades\Storage;
 
 class StorageController extends Controller
 {
@@ -13,6 +14,7 @@ class StorageController extends Controller
         $storageCapMb = config('fileshare.storage_cap_mb');
         $storageUsedMb = round($totalSize / 1024 / 1024, 1);
         $storagePercent = min(100, round($storageUsedMb / $storageCapMb * 100));
+        $warningThreshold = $this->storageWarningThreshold();
 
         $byUser = SharedFile::select('user_id')
             ->selectRaw('SUM(file_size) as total_size')
@@ -32,8 +34,19 @@ class StorageController extends Controller
             'storageUsedMb' => $storageUsedMb,
             'storageCapMb' => $storageCapMb,
             'storagePercent' => $storagePercent,
+            'warningThreshold' => $warningThreshold,
             'byUser' => $byUser,
             'largestFiles' => $largestFiles,
         ]);
+    }
+
+    private function storageWarningThreshold()
+    {
+        if (Storage::exists('settings.json')) {
+            $settings = json_decode(Storage::get('settings.json'), true);
+            return $settings['storage_warning_threshold'] ?? 80;
+        }
+
+        return 80;
     }
 }

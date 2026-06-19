@@ -8,61 +8,58 @@
     @endif
 </div>
 
-{{-- 検索フォーム --}}
-<div style="margin-bottom:1rem;max-width:520px">
+{{-- 検索・絞り込みフォーム --}}
+@php
+    $statusFilters = ['wait' => '未DL', 'done' => 'DL済み', 'expired' => '期限切れ', 'invalidated' => '無効化済み'];
+    $categoryFilters = ['business' => '取引先', 'recruitment' => '採用', 'other' => 'その他'];
+@endphp
+<div class="axon-card" style="margin-bottom:1.25rem">
     <form method="GET" action="{{ route('urls.index') }}">
-        <input type="hidden" name="status"   value="{{ $status }}">
-        <input type="hidden" name="category" value="{{ $category }}">
-        <input type="hidden" name="sort"     value="{{ $sort }}">
-        <input type="hidden" name="dir"      value="{{ $dir }}">
-        <div style="display:flex;gap:8px;margin-bottom:6px">
+        <input type="hidden" name="sort" value="{{ $sort }}">
+        <input type="hidden" name="dir"  value="{{ $dir }}">
+
+        <div style="display:flex;gap:8px;margin-bottom:10px;max-width:520px">
             <input type="text" name="q" value="{{ request('q') }}" class="axon-input" placeholder="相手先名・メール・ファイル名で検索" style="flex:1">
-            <button type="submit" class="btn-axon-outline" style="white-space:nowrap">検索</button>
         </div>
         @if(Auth::user()->role === 'admin')
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;margin-bottom:14px;max-width:520px">
             <input type="text" name="staff_q" value="{{ $staffQ }}" class="axon-input" placeholder="担当者名で検索" style="flex:1">
-            <button type="submit" class="btn-axon-outline" style="white-space:nowrap">検索</button>
         </div>
         @endif
-        @if(request('q') || $staffQ)
-        <div style="margin-top:6px">
-            <a href="{{ route('urls.index', ['status' => $status, 'category' => $category, 'sort' => $sort, 'dir' => $dir]) }}" class="btn-axon-ghost">クリア</a>
-        </div>
-        @endif
-    </form>
-</div>
 
-{{-- フィルタータブ --}}
-@php
-    $tabs = ['all' => '全件', 'wait' => '未DL', 'done' => 'DL済み', 'expired' => '期限切れ', 'invalidated' => '無効化済み'];
-    $categoryTabs = ['all' => '全属性', 'business' => '取引先', 'recruitment' => '採用', 'other' => 'その他'];
-    $baseParams = array_filter(['q' => request('q'), 'staff_q' => $staffQ, 'sort' => $sort, 'dir' => $dir, 'status' => $status, 'category' => $category]);
-@endphp
-<div style="display:flex;gap:4px;margin-bottom:8px">
-    @foreach($tabs as $key => $label)
-    @php $isActive = $status === $key; @endphp
-    <a href="{{ route('urls.index', array_merge($baseParams, ['status' => $key])) }}"
-       style="font-size:12px;padding:5px 12px;border-radius:20px;text-decoration:none;border:1px solid;
-              {{ $isActive ? 'background:#0066FF;color:#fff;border-color:#0066FF;font-weight:500' : 'background:#fff;color:#7090CC;border-color:#D0DEFF' }}">
-        {{ $label }}
-        <span style="font-size:11px;{{ $isActive ? 'opacity:.8' : 'color:#B0C0E0' }}">{{ $counts[$key] }}</span>
-    </a>
-    @endforeach
-</div>
-@php
-    $categoryColors = ['all' => '#001240', 'business' => '#0044CC', 'recruitment' => '#006E42', 'other' => '#5500AA'];
-@endphp
-<div style="display:flex;gap:4px;margin-bottom:1rem">
-    @foreach($categoryTabs as $key => $label)
-    @php $isActive = $category === $key; $activeColor = $categoryColors[$key]; @endphp
-    <a href="{{ route('urls.index', array_merge($baseParams, ['category' => $key])) }}"
-       style="font-size:12px;padding:5px 12px;border-radius:20px;text-decoration:none;border:1px solid;
-              {{ $isActive ? "background:{$activeColor};color:#fff;border-color:{$activeColor};font-weight:500" : 'background:#fff;color:#7090CC;border-color:#D0DEFF' }}">
-        {{ $label }}
-        <span style="font-size:11px;{{ $isActive ? 'opacity:.8' : 'color:#B0C0E0' }}">{{ $categoryCounts[$key] }}</span>
-    </a>
-    @endforeach
+        <div style="margin-bottom:12px">
+            <div class="axon-label" style="margin-bottom:6px">状態（複数選択可）</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+                @foreach($statusFilters as $key => $label)
+                <label class="axon-checkbox-pill">
+                    <input type="checkbox" name="status[]" value="{{ $key }}" {{ in_array($key, $selectedStatuses) ? 'checked' : '' }}>
+                    {{ $label }}
+                    <span class="axon-checkbox-pill-count">{{ $counts[$key] }}</span>
+                </label>
+                @endforeach
+            </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+            <div class="axon-label" style="margin-bottom:6px">属性（複数選択可）</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+                @foreach($categoryFilters as $key => $label)
+                <label class="axon-checkbox-pill">
+                    <input type="checkbox" name="category[]" value="{{ $key }}" {{ in_array($key, $selectedCategories) ? 'checked' : '' }}>
+                    {{ $label }}
+                    <span class="axon-checkbox-pill-count">{{ $categoryCounts[$key] }}</span>
+                </label>
+                @endforeach
+            </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;padding-top:12px;border-top:1px solid #D4DFF5">
+            <button type="submit" class="btn-axon">絞り込む</button>
+            @if(request('q') || $staffQ || $selectedStatuses || $selectedCategories)
+            <a href="{{ route('urls.index', array_filter(['sort' => $sort, 'dir' => $dir])) }}" class="btn-axon-ghost">クリア</a>
+            @endif
+        </div>
+    </form>
 </div>
 
 {{-- テーブル --}}
@@ -83,7 +80,7 @@
                         $url      = route($route, $params);
                         return "<a href=\"{$url}\" style=\"text-decoration:none;color:inherit\">{$label}{$arrow}</a>";
                     }
-                    $sp = array_filter(['q' => request('q'), 'staff_q' => $staffQ, 'status' => $status, 'category' => $category]);
+                    $sp = array_filter(['q' => request('q'), 'staff_q' => $staffQ, 'status' => $selectedStatuses, 'category' => $selectedCategories]);
                 @endphp
                 <th style="white-space:nowrap">{!! sortLink('urls.index', 'recipient_name', '相手先', $sort, $dir, $sp) !!}</th>
                 <th>企業</th>
@@ -104,14 +101,14 @@
                 $isExpired = $url->expires_at->isPast();
                 $isDone    = $url->download_count > 0;
             @endphp
-            <tr>
+            <tr class="{{ $isInvalidated ? 'row-invalidated' : ($isExpired ? 'row-expired' : '') }}">
                 @if(Auth::user()->role === 'admin')
                 <td style="white-space:nowrap">{{ $url->user->name ?? '-' }}</td>
                 @endif
                 <td style="font-weight:500;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_name }}">{{ $url->recipient_name }}</td>
-                <td style="color:#001240;font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->company_name }}">{{ $url->company_name ?: '—' }}</td>
-                <td style="color:#001240;font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_title }}">{{ $url->recipient_title ?: '—' }}</td>
-                <td style="color:#001240;font-size:12px">{{ $url->recipient_email }}</td>
+                <td style="color:#001240;font-size:13px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->company_name }}">{{ $url->company_name ?: '—' }}</td>
+                <td style="color:#001240;font-size:13px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_title }}">{{ $url->recipient_title ?: '—' }}</td>
+                <td style="color:#001240;font-size:13px">{{ $url->recipient_email }}</td>
                 <td>
                     @if($url->category === 'business')
                         <span class="badge-business">取引先</span>
@@ -120,7 +117,7 @@
                     @elseif($url->category === 'other')
                         <span class="badge-other">その他</span>
                     @else
-                        <span style="color:#B0C0E0;font-size:12px">—</span>
+                        <span style="color:#B0C0E0;font-size:13px">—</span>
                     @endif
                 </td>
                 <td>
@@ -128,8 +125,8 @@
                         {{ $url->sharedFile->original_name ?? '-' }}
                     </a>
                 </td>
-                <td style="color:#001240;font-size:12px;white-space:nowrap">{{ $url->created_at->format('Y-m-d') }}</td>
-                <td style="font-size:12px">{{ $url->expires_at->format('Y-m-d H:i') }}</td>
+                <td style="color:#001240;font-size:13px;white-space:nowrap">{{ $url->created_at->format('Y-m-d') }}</td>
+                <td style="font-size:13px">{{ $url->expires_at->format('Y-m-d H:i') }}</td>
                 <td style="white-space:nowrap">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
                 <td>
                     @if($isInvalidated)

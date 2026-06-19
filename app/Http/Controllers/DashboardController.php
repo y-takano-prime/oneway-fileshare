@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DownloadUrl;
 use App\Models\SharedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
@@ -31,12 +32,23 @@ class DashboardController extends Controller
         $storageCapMb    = config('fileshare.storage_cap_mb');
         $storagePercent  = min(100, round($storageUsedMb / $storageCapMb * 100));
         $fileCount       = SharedFile::when(Auth::user()->role !== 'admin', fn($q) => $q->where('user_id', Auth::id()))->count();
+        $storageWarningThreshold = $this->storageWarningThreshold();
 
         return view('dashboard', compact(
             'totalUrls', 'doneCount', 'waitCount', 'expCount',
             'validCount', 'expiredCount', 'totalDownloads', 'recentUrls',
             'storageUsedMb', 'storageCapMb', 'storagePercent', 'fileCount',
-            'totalSize'
+            'totalSize', 'storageWarningThreshold'
         ));
+    }
+
+    private function storageWarningThreshold()
+    {
+        if (Storage::exists('settings.json')) {
+            $settings = json_decode(Storage::get('settings.json'), true);
+            return $settings['storage_warning_threshold'] ?? 80;
+        }
+
+        return 80;
     }
 }

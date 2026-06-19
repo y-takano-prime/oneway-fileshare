@@ -31,15 +31,21 @@
             @php
                 $rowMb = round($row->total_size / 1024 / 1024, 1);
                 $rowPercent = $storageCapMb > 0 ? round($rowMb / $storageCapMb * 100, 1) : 0;
+                $rowWarning = $rowPercent >= $warningThreshold;
             @endphp
             <tr>
-                <td style="font-weight:500;white-space:nowrap">{{ optional($row->user)->name ?? '(削除済みユーザー)' }}</td>
+                <td style="font-weight:500;white-space:nowrap">
+                    {{ optional($row->user)->name ?? '(削除済みユーザー)' }}
+                    @if($rowWarning)
+                    <span class="badge-wait" style="margin-left:6px">警告</span>
+                    @endif
+                </td>
                 <td>{{ $row->file_count }}件</td>
                 <td style="color:#001240;font-size:12px;white-space:nowrap">{{ $rowMb }} MB</td>
                 <td style="width:160px">
                     <div style="display:flex;align-items:center;gap:8px">
                         <div class="axon-bar" style="flex:1;margin-top:0">
-                            <div class="axon-bar-fill" style="width:{{ $rowPercent }}%"></div>
+                            <div class="axon-bar-fill{{ $rowWarning ? ' warn' : '' }}" style="width:{{ $rowPercent }}%"></div>
                         </div>
                         <span style="font-size:11px;color:#7090CC;white-space:nowrap">{{ $rowPercent }}%</span>
                     </div>
