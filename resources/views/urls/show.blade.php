@@ -90,6 +90,7 @@
     <div style="padding:12px 16px;border-bottom:0.5px solid #D0DEFF">
         <span style="font-size:13px;font-weight:500;color:#001240">アクセスログ</span>
     </div>
+    <div class="axon-table-wrap">
     <table class="axon-table">
         <thead>
             <tr>
@@ -110,6 +111,7 @@
             @endforelse
         </tbody>
     </table>
+    </div>
     <div style="padding:12px 16px;border-top:0.5px solid #D0DEFF">
         {{ $accessLogs->links() }}
     </div>

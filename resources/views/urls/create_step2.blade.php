@@ -40,6 +40,7 @@
     {{-- アップロード済みから選択 --}}
     <div class="axon-card" style="padding:0;overflow:hidden;margin-bottom:1rem">
         <div style="padding:12px 16px;border-bottom:0.5px solid #D0DEFF;font-size:11px;color:#7090CC;letter-spacing:.04em;text-transform:uppercase;font-weight:600">アップロード済みから選択</div>
+        <div class="axon-table-wrap">
         <table class="axon-table">
             <thead>
                 <tr>
@@ -69,6 +70,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 
     <div style="display:flex;justify-content:space-between">

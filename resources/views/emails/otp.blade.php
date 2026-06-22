@@ -14,7 +14,7 @@
 <body>
 <div class="wrap">
 
-    <p style="margin:0">認証コードのご案内</p>
+    <p style="margin:0">株式会社プライムネット「AXON」ファイル共有システムからのご案内です。</p>
     <br>
     <p style="margin:0">以下のファイルのダウンロードのため、認証コードを入力してください。</p>
     <br>
@@ -27,7 +27,7 @@
     <br>
     <p style="margin:0">有効期限: 発行から10分間</p>
     <br>
-    <div class="footer">このメールに心当たりがない場合は破棄してください。</div>
+    <div class="footer">本メールは株式会社プライムネットが提供する「AXON」より送信されています。心当たりがない場合は破棄してください。</div>
 
 </div>
 </body>

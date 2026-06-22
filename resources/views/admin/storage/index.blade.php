@@ -17,6 +17,7 @@
     <div style="padding:12px 16px;border-bottom:0.5px solid #D0DEFF">
         <span style="font-size:13px;font-weight:500;color:#001240">ユーザー別内訳</span>
     </div>
+    <div class="axon-table-wrap">
     <table class="axon-table">
         <thead>
             <tr>
@@ -56,6 +57,7 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 
 {{-- 大きいファイル --}}
@@ -63,6 +65,7 @@
     <div style="padding:12px 16px;border-bottom:0.5px solid #D0DEFF">
         <span style="font-size:13px;font-weight:500;color:#001240">サイズの大きいファイル（上位20件）</span>
     </div>
+    <div class="axon-table-wrap">
     <table class="axon-table">
         <thead>
             <tr>
@@ -85,5 +88,6 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 @endsection

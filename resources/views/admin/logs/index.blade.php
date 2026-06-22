@@ -20,6 +20,7 @@
     </div>
 
     <div class="axon-card" style="padding:0;overflow:hidden">
+        <div class="axon-table-wrap">
         <table class="axon-table">
             <thead>
                 <tr>

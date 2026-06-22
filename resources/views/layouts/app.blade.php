@@ -61,6 +61,19 @@
         .axon-nav-link:hover { background: #E6F0FF; color: #0044CC; border-color: #B0CCFF; }
         .axon-nav-link.active { background: #0066FF; color: #fff; border-color: #0066FF; font-weight: 500; }
         .axon-nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+        .axon-nav-links { display: flex; align-items: center; gap: 0.75rem; }
+        .axon-nav-toggle {
+            display: none;
+            background: transparent;
+            border: 1px solid #D0DEFF;
+            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
         .axon-id-dropdown { position: relative; }
         .axon-id-trigger {
             display: flex;
@@ -154,6 +167,7 @@
         }
 
         /* メトリクスカード */
+        .axon-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .axon-stat {
             background: #fff;
             border: 0.5px solid #D0DEFF;
@@ -374,6 +388,34 @@
             border-bottom-color: #0066FF;
             font-weight: 500;
         }
+
+        /* テーブルのスマホ用横スクロールラッパー */
+        .axon-table-wrap { width: 100%; }
+
+        /* スマホ対応（ナビ折りたたみ・テーブル横スクロール・各要素の折り返し） */
+        @media (max-width: 768px) {
+            .axon-navbar { height: auto; }
+            .axon-navbar-inner { flex-wrap: wrap; padding: 0.75rem 1rem; }
+            .axon-nav-toggle { display: flex; }
+            .axon-nav-links {
+                display: none;
+                width: 100%;
+                flex-basis: 100%;
+                order: 3;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+                margin-top: 0.75rem;
+            }
+            .axon-nav-links.open { display: flex; }
+            .axon-nav-link { text-align: center; }
+            .axon-content { padding: 1rem; }
+            .axon-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .axon-table { width: auto; min-width: 640px; }
+            .axon-steps { flex-wrap: wrap; gap: 0.5rem 0; }
+            .axon-step { margin-right: 1rem; }
+            .axon-stat-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
@@ -392,34 +434,44 @@
         AXON
     </a>
 
-    <a href="{{ route('dashboard') }}" class="axon-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-        ダッシュボード
-    </a>
+    <button type="button" id="axon-nav-toggle" class="axon-nav-toggle" aria-label="メニュー">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+            <line x1="0" y1="1" x2="18" y2="1" stroke="#001240" stroke-width="1.8"/>
+            <line x1="0" y1="7" x2="18" y2="7" stroke="#001240" stroke-width="1.8"/>
+            <line x1="0" y1="13" x2="18" y2="13" stroke="#001240" stroke-width="1.8"/>
+        </svg>
+    </button>
 
-    @if(Auth::user()->role !== 'admin')
-    <a href="{{ route('urls.create') }}" class="axon-nav-link {{ request()->routeIs('urls.create') || request()->routeIs('urls.create_step2') ? 'active' : '' }}">
-        新規作成
-    </a>
-    @endif
+    <div id="axon-nav-links" class="axon-nav-links">
+        <a href="{{ route('dashboard') }}" class="axon-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            ダッシュボード
+        </a>
 
-    <a href="{{ route('urls.index') }}" class="axon-nav-link {{ request()->routeIs('urls.*') && !request()->routeIs('urls.create') && !request()->routeIs('urls.create_step2') && !request()->routeIs('urls.complete') ? 'active' : '' }}">
-        URL管理
-    </a>
+        @if(Auth::user()->role !== 'admin')
+        <a href="{{ route('urls.create') }}" class="axon-nav-link {{ request()->routeIs('urls.create') || request()->routeIs('urls.create_step2') ? 'active' : '' }}">
+            新規作成
+        </a>
+        @endif
 
-    @if(Auth::user()->role === 'admin')
-    <a href="{{ route('admin.users.index') }}" class="axon-nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-        ユーザー管理
-    </a>
-    <a href="{{ route('admin.logs.index') }}" class="axon-nav-link {{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
-        ログ
-    </a>
-    <a href="{{ route('admin.storage.index') }}" class="axon-nav-link {{ request()->routeIs('admin.storage.*') ? 'active' : '' }}">
-        ストレージ
-    </a>
-    <a href="{{ route('admin.settings.index') }}" class="axon-nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-        設定
-    </a>
-    @endif
+        <a href="{{ route('urls.index') }}" class="axon-nav-link {{ request()->routeIs('urls.*') && !request()->routeIs('urls.create') && !request()->routeIs('urls.create_step2') && !request()->routeIs('urls.complete') ? 'active' : '' }}">
+            URL管理
+        </a>
+
+        @if(Auth::user()->role === 'admin')
+        <a href="{{ route('admin.users.index') }}" class="axon-nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+            ユーザー管理
+        </a>
+        <a href="{{ route('admin.logs.index') }}" class="axon-nav-link {{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
+            ログ
+        </a>
+        <a href="{{ route('admin.storage.index') }}" class="axon-nav-link {{ request()->routeIs('admin.storage.*') ? 'active' : '' }}">
+            ストレージ
+        </a>
+        <a href="{{ route('admin.settings.index') }}" class="axon-nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+            設定
+        </a>
+        @endif
+    </div>
 
     <div class="axon-nav-right">
         @php
@@ -474,6 +526,17 @@ document.addEventListener('click', function (e) {
         menu.classList.toggle('open');
     } else if (!menu.contains(e.target)) {
         menu.classList.remove('open');
+    }
+});
+
+document.addEventListener('click', function (e) {
+    var navToggle = document.getElementById('axon-nav-toggle');
+    var navLinks = document.getElementById('axon-nav-links');
+    if (!navToggle || !navLinks) return;
+    if (navToggle.contains(e.target)) {
+        navLinks.classList.toggle('open');
+    } else if (!navLinks.contains(e.target)) {
+        navLinks.classList.remove('open');
     }
 });
 </script>

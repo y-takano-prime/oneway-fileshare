@@ -9,7 +9,8 @@
         body { background: #F5F8FF; font-family: system-ui, -apple-system, sans-serif; margin: 0; }
         .dl-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
         .dl-card { background: #fff; border: 0.5px solid #D0DEFF; border-radius: 12px; padding: 2rem 2.5rem; width: 100%; max-width: 420px; }
-        .dl-logo { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; color: #001240; letter-spacing: -0.02em; margin-bottom: 1.75rem; justify-content: center; }
+        .dl-logo { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; color: #001240; letter-spacing: -0.02em; margin-bottom: 4px; justify-content: center; }
+        .dl-brand-sub { font-size: 11px; color: #7090CC; text-align: center; margin: 0 0 1.75rem; }
         .dl-logo-mark { width: 22px; height: 22px; background: #0066FF; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
         .dl-error-box { background: #FFF4E0; border: 0.5px solid #F0D090; border-radius: 8px; padding: 1rem 1.25rem; text-align: center; }
         .dl-error-title { font-size: 14px; font-weight: 500; color: #7A4F00; margin: 0 0 4px; }
@@ -28,6 +29,7 @@
             </div>
             AXON
         </div>
+        <p class="dl-brand-sub">株式会社プライムネット</p>
         @php
             $messages = [
                 'expired' => ['このURLの有効期限は切れています。', '担当者に新しいURLを発行してもらってください。'],

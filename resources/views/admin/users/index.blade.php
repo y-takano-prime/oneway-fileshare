@@ -7,6 +7,7 @@
 </div>
 
 <div class="axon-card" style="padding:0;overflow:hidden">
+    <div class="axon-table-wrap">
     <table class="axon-table">
         <thead>
             <tr>
@@ -58,6 +59,7 @@
             @endforelse
         </tbody>
     </table>
+    </div>
     <div style="padding:12px 16px;border-top:0.5px solid #D0DEFF">
         {{ $users->links() }}
     </div>

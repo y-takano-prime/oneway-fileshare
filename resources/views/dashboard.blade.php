@@ -15,7 +15,7 @@
 @endif
 
 {{-- メトリクスカード --}}
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem">
+<div class="axon-stat-grid" style="margin-bottom:1.25rem">
     <div class="axon-stat">
         <div class="axon-stat-num">{{ $totalUrls }}</div>
         <div class="axon-stat-label">TOTAL URLs</div>
@@ -43,6 +43,7 @@
         <span style="font-size:13px;font-weight:500;color:#001240">直近のURL</span>
         <a href="{{ route('urls.index') }}" style="font-size:12px;color:#0066FF;text-decoration:none">すべて見る →</a>
     </div>
+    <div class="axon-table-wrap">
     <table class="axon-table">
         <thead>
             <tr>
@@ -109,5 +110,6 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 @endsection

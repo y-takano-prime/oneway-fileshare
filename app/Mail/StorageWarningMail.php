@@ -26,7 +26,7 @@ class StorageWarningMail extends Mailable
 
     public function build()
     {
-        return $this->subject('【oneway-fileshare】ストレージ占有率が警告しきい値を超えました')
+        return $this->subject('【AXON】ストレージ占有率が警告しきい値を超えました')
             ->text('emails.storage_warning');
     }
 }

@@ -9,7 +9,8 @@
         body { background: #F5F8FF; font-family: system-ui, -apple-system, sans-serif; margin: 0; }
         .dl-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
         .dl-card { background: #fff; border: 0.5px solid #D0DEFF; border-radius: 12px; padding: 2rem 2.5rem; width: 100%; max-width: 420px; }
-        .dl-logo { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; color: #001240; letter-spacing: -0.02em; margin-bottom: 1.75rem; justify-content: center; }
+        .dl-logo { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; color: #001240; letter-spacing: -0.02em; margin-bottom: 4px; justify-content: center; }
+        .dl-brand-sub { font-size: 11px; color: #7090CC; text-align: center; margin: 0 0 1.75rem; }
         .dl-logo-mark { width: 22px; height: 22px; background: #0066FF; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
         .dl-title { font-size: 16px; font-weight: 500; color: #001240; margin: 0 0 4px; }
         .dl-sub { font-size: 13px; color: #7090CC; margin: 0 0 1.5rem; }
@@ -37,6 +38,7 @@
             </div>
             AXON
         </div>
+        <p class="dl-brand-sub">株式会社プライムネット</p>
         <p class="dl-title">認証完了</p>
         <p class="dl-sub">以下のファイルをダウンロードできます</p>
 
