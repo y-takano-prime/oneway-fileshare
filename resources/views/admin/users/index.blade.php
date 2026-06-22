@@ -14,10 +14,10 @@
                 <th>社員コード</th>
                 <th>名前</th>
                 <th>部署</th>
-                <th>会社</th>
+                <th style="text-align:center">会社</th>
                 <th>メールアドレス</th>
-                <th>権限</th>
-                <th>状態</th>
+                <th style="text-align:center">権限</th>
+                <th style="text-align:center">状態</th>
                 <th></th>
             </tr>
         </thead>
@@ -27,16 +27,16 @@
                     <td>{{ $user->employee_code ?? '—' }}</td>
                     <td style="font-weight:500">{{ $user->name }}</td>
                     <td>{{ $user->dept_name ?? '—' }}</td>
-                    <td>{{ $user->company_id ?? '—' }}</td>
+                    <td style="text-align:center">{{ $user->company_id ?? '—' }}</td>
                     <td>{{ $user->email }}</td>
-                    <td>
+                    <td style="text-align:center">
                         @if($user->role === 'admin')
                             <span style="background:#F0EEFF;color:#5500AA;font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500;white-space:nowrap">管理者</span>
                         @else
                             <span class="badge-dl">担当者</span>
                         @endif
                     </td>
-                    <td>
+                    <td style="text-align:center">
                         @if($user->is_active)
                             <span class="badge-recruitment" style="font-size:11px;padding:3px 8px;border-radius:20px">有効</span>
                         @else

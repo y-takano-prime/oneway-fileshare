@@ -87,12 +87,12 @@
                 <th>企業</th>
                 <th>役職部署</th>
                 <th>メールアドレス</th>
-                <th>{!! sortLink('urls.index', 'category', '属性', $sort, $dir, $sp) !!}</th>
+                <th style="text-align:center">{!! sortLink('urls.index', 'category', '属性', $sort, $dir, $sp) !!}</th>
                 <th>ファイル名</th>
                 <th>{!! sortLink('urls.index', 'created_at', '作成日', $sort, $dir, $sp) !!}</th>
                 <th>{!! sortLink('urls.index', 'expires_at', '有効期限', $sort, $dir, $sp) !!}</th>
-                <th style="white-space:nowrap">{!! sortLink('urls.index', 'download_count', 'DL数', $sort, $dir, $sp) !!}</th>
-                <th>状態</th>
+                <th style="white-space:nowrap;text-align:center">{!! sortLink('urls.index', 'download_count', 'DL数', $sort, $dir, $sp) !!}</th>
+                <th style="text-align:center">状態</th>
             </tr>
         </thead>
         <tbody>
@@ -110,7 +110,7 @@
                 <td style="color:#001240;font-size:13px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->company_name }}">{{ $url->company_name ?: '—' }}</td>
                 <td style="color:#001240;font-size:13px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_title }}">{{ $url->recipient_title ?: '—' }}</td>
                 <td style="color:#001240;font-size:13px">{{ $url->recipient_email }}</td>
-                <td>
+                <td style="text-align:center">
                     @if($url->category === 'business')
                         <span class="badge-business">取引先</span>
                     @elseif($url->category === 'recruitment')
@@ -128,8 +128,8 @@
                 </td>
                 <td style="color:#001240;font-size:13px;white-space:nowrap">{{ $url->created_at->format('Y-m-d') }}</td>
                 <td style="font-size:13px">{{ $url->expires_at->format('Y-m-d H:i') }}</td>
-                <td style="white-space:nowrap">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
-                <td>
+                <td style="white-space:nowrap;text-align:center">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
+                <td style="text-align:center">
                     @if($isInvalidated)
                         <span class="badge-invalidated">無効化済み</span>
                     @elseif($isExpired)

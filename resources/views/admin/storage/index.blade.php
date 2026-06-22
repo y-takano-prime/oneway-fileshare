@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<h2 style="font-size:18px;font-weight:600;color:#001240;margin:0 0 1.25rem">ストレージ</h2>
+<h2 style="font-size:18px;font-weight:600;color:#001240;margin:0 0 1.25rem">ストレージ管理</h2>
 
 {{-- 全体使用量 --}}
 <div class="axon-card" style="margin-bottom:1.25rem">

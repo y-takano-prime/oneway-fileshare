@@ -18,12 +18,15 @@ class DashboardController extends Controller
             ->get();
 
         $totalUrls  = $urls->count();
-        $doneCount  = $urls->where('download_count', '>', 0)->count();
+        $doneCount  = $urls->where('download_count', '>', 0)->filter(fn($u) => !$u->expires_at->isPast())->count();
         $waitCount  = $urls->where('download_count', 0)->filter(fn($u) => !$u->expires_at->isPast())->count();
         $expCount   = $urls->filter(fn($u) => $u->expires_at->isPast())->count();
 
         $validCount     = $urls->filter(fn($u) => !$u->expires_at->isPast())->count();
         $expiredCount   = $expCount;
+        $invalidatedCount = DownloadUrl::onlyTrashed()
+            ->when(Auth::user()->role !== 'admin', fn($q) => $q->where('user_id', Auth::id()))
+            ->count();
         $totalDownloads = $urls->sum('download_count');
         $recentUrls     = $urls->take(10);
 
@@ -36,7 +39,7 @@ class DashboardController extends Controller
 
         return view('dashboard', compact(
             'totalUrls', 'doneCount', 'waitCount', 'expCount',
-            'validCount', 'expiredCount', 'totalDownloads', 'recentUrls',
+            'validCount', 'expiredCount', 'invalidatedCount', 'totalDownloads', 'recentUrls',
             'storageUsedMb', 'storageCapMb', 'storagePercent', 'fileCount',
             'totalSize', 'storageWarningThreshold'
         ));

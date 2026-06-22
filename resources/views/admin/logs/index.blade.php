@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <h2 style="font-size:18px;font-weight:600;color:#001240;margin:0 0 1.25rem">アクセスログ</h2>
+    <h2 style="font-size:18px;font-weight:600;color:#001240;margin:0 0 1.25rem">ログ管理</h2>
 
     {{-- フィルタータブ --}}
     @php

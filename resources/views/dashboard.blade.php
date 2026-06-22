@@ -16,25 +16,51 @@
 
 {{-- メトリクスカード --}}
 <div class="axon-stat-grid" style="margin-bottom:1.25rem">
-    <div class="axon-stat">
+    <a href="{{ route('urls.index', ['status' => ['wait', 'done', 'expired']]) }}" class="axon-stat">
         <div class="axon-stat-num">{{ $totalUrls }}</div>
-        <div class="axon-stat-label">TOTAL URLs</div>
-    </div>
-    <div class="axon-stat">
-        <div class="axon-stat-num" style="color:#0066FF">{{ $doneCount }}</div>
-        <div class="axon-stat-label">DOWNLOADED</div>
-    </div>
-    <div class="axon-stat">
-        <div class="axon-stat-num" style="color:#D4880A">{{ $waitCount }}</div>
-        <div class="axon-stat-label">PENDING</div>
-    </div>
-    <div class="axon-stat">
+        <div class="axon-stat-label">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:#001240"><line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="2" y1="12" x2="14" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            発行済みURL
+        </div>
+    </a>
+    <a href="{{ route('urls.index', ['status' => ['done']]) }}" class="axon-stat">
+        <div class="axon-stat-num" style="color:#0044CC">{{ $doneCount }}</div>
+        <div class="axon-stat-label">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:#0044CC"><circle cx="8" cy="8" r="6.3" stroke="currentColor" stroke-width="1.6"/><path d="M5.3 8.2L7.2 10.1L10.8 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            DL済み
+        </div>
+    </a>
+    <a href="{{ route('urls.index', ['status' => ['wait']]) }}" class="axon-stat">
+        <div class="axon-stat-num" style="color:#9B6200">{{ $waitCount }}</div>
+        <div class="axon-stat-label">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:#9B6200"><circle cx="8" cy="8" r="6.3" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5V8L10.3 9.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            未DL
+        </div>
+    </a>
+    <a href="{{ route('urls.index', ['status' => ['expired']]) }}" class="axon-stat">
+        <div class="axon-stat-num" style="color:#5C5C5C">{{ $expiredCount }}</div>
+        <div class="axon-stat-label">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:#5C5C5C"><rect x="2" y="3.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.6"/><line x1="2" y1="6.5" x2="14" y2="6.5" stroke="currentColor" stroke-width="1.6"/><line x1="6" y1="9" x2="10" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="10" y1="9" x2="6" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            期限切れ
+        </div>
+    </a>
+    <a href="{{ route('urls.index', ['status' => ['invalidated']]) }}" class="axon-stat">
+        <div class="axon-stat-num" style="color:#CC0000">{{ $invalidatedCount }}</div>
+        <div class="axon-stat-label">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:#CC0000"><circle cx="8" cy="8" r="6.3" stroke="currentColor" stroke-width="1.6"/><line x1="3.8" y1="12.2" x2="12.2" y2="3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            無効化済み
+        </div>
+    </a>
+    <a href="{{ Auth::user()->role === 'admin' ? route('admin.storage.index') : route('files.index') }}" class="axon-stat">
         <div class="axon-stat-num" style="font-size:18px">
             {{ $storageUsedMb }} MB<span style="font-size:11px;color:#7090CC"> / {{ round($storageCapMb / 1024, 1) }} GB</span>
         </div>
-        <div class="axon-stat-label">STORAGE（{{ $fileCount }}件）</div>
+        <div class="axon-stat-label">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:#001240"><ellipse cx="8" cy="3.8" rx="5.5" ry="1.8" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 3.8V12.2C2.5 13.2 4.9 14 8 14C11.1 14 13.5 13.2 13.5 12.2V3.8" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 8C2.5 9 4.9 9.8 8 9.8C11.1 9.8 13.5 9 13.5 8" stroke="currentColor" stroke-width="1.5"/></svg>
+            ストレージ（{{ $fileCount }}件）
+        </div>
         <div class="axon-bar"><div class="axon-bar-fill{{ Auth::user()->role !== 'admin' && $storagePercent >= $storageWarningThreshold ? ' warn' : '' }}" style="width:{{ $storagePercent }}%"></div></div>
-    </div>
+    </a>
 </div>
 
 {{-- 直近URL一覧 --}}
@@ -54,12 +80,12 @@
                 <th>企業</th>
                 <th>役職部署</th>
                 <th>メールアドレス</th>
-                <th>属性</th>
+                <th style="text-align:center">属性</th>
                 <th>ファイル名</th>
                 <th>作成日</th>
                 <th>有効期限</th>
-                <th style="white-space:nowrap">DL数</th>
-                <th>状態</th>
+                <th style="white-space:nowrap;text-align:center">DL数</th>
+                <th style="text-align:center">状態</th>
             </tr>
         </thead>
         <tbody>
@@ -76,7 +102,7 @@
                 <td style="color:#001240;font-size:13px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->company_name }}">{{ $url->company_name ?: '—' }}</td>
                 <td style="color:#001240;font-size:13px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ $url->recipient_title }}">{{ $url->recipient_title ?: '—' }}</td>
                 <td style="color:#001240;font-size:13px">{{ $url->recipient_email }}</td>
-                <td>
+                <td style="text-align:center">
                     @if($url->category === 'business')
                         <span class="badge-business">取引先</span>
                     @elseif($url->category === 'recruitment')
@@ -94,8 +120,8 @@
                 </td>
                 <td style="color:#001240;font-size:13px;white-space:nowrap">{{ $url->created_at->format('Y-m-d') }}</td>
                 <td style="font-size:13px">{{ $url->expires_at->format('Y-m-d H:i') }}</td>
-                <td style="white-space:nowrap">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
-                <td>
+                <td style="white-space:nowrap;text-align:center">{{ $url->download_count }}{{ $url->download_limit ? ' / '.$url->download_limit : '' }}</td>
+                <td style="text-align:center">
                     @if($isExpired)
                         <span class="badge-expired">期限切れ</span>
                     @elseif($isDone)

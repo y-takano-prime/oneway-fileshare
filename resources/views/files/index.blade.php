@@ -3,6 +3,7 @@
 @section('content')
     <h2 style="font-size:18px;font-weight:600;color:#001240;margin:0 0 1.25rem">ファイル管理</h2>
 
+    @if (Auth::user()->role !== 'admin')
     <div class="axon-card" style="margin-bottom:1rem">
         <div id="drop-area" style="border:1px dashed #B8CCF0;border-radius:8px;padding:2.5rem;text-align:center;cursor:pointer">
             <p style="margin:0;color:#001240;font-size:13px">ここにファイルをドラッグ＆ドロップ、またはクリックして選択</p>
@@ -20,6 +21,7 @@
         </div>
         <div id="upload-message" style="margin-top:8px;font-size:13px;color:#CC0000"></div>
     </div>
+    @endif
 
     <div class="axon-card" style="padding:0;overflow:hidden">
         <div style="padding:12px 16px;border-bottom:0.5px solid #D0DEFF">
@@ -37,15 +39,26 @@
             <div class="axon-table-wrap">
             <table class="axon-table">
                 <thead>
+                    @php
+                        function fileSortLink($col, $label, $currentSort, $currentDir, $extra = []) {
+                            $isActive = $currentSort === $col;
+                            $nextDir  = ($isActive && $currentDir === 'desc') ? 'asc' : 'desc';
+                            $arrow    = $isActive ? ($currentDir === 'asc' ? ' ↑' : ' ↓') : '';
+                            $params   = array_merge($extra, ['sort' => $col, 'dir' => $nextDir]);
+                            $url      = route('files.index', $params);
+                            return "<a href=\"{$url}\" style=\"text-decoration:none;color:inherit\">{$label}{$arrow}</a>";
+                        }
+                        $sp = array_filter(['q' => request('q')]);
+                    @endphp
                     <tr>
-                        <th>ファイル名</th>
-                        <th>URL数</th>
+                        <th>{!! fileSortLink('original_name', 'ファイル名', $sort, $dir, $sp) !!}</th>
+                        <th>{!! fileSortLink('download_urls_count', 'URL数', $sort, $dir, $sp) !!}</th>
                         @if (Auth::user()->role === 'admin')
-                            <th>アップロード者</th>
+                            <th>{!! fileSortLink('uploader_name', 'アップロード者', $sort, $dir, $sp) !!}</th>
                         @endif
-                        <th>サイズ</th>
-                        <th>アップロード日時</th>
-                        <th>削除予定日</th>
+                        <th>{!! fileSortLink('file_size', 'サイズ', $sort, $dir, $sp) !!}</th>
+                        <th>{!! fileSortLink('created_at', 'アップロード日時', $sort, $dir, $sp) !!}</th>
+                        <th>{!! fileSortLink('earliest_expires_at', '削除予定日', $sort, $dir, $sp) !!}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -115,26 +128,28 @@
         const progressBar = document.getElementById('progress-bar');
         const uploadMessage = document.getElementById('upload-message');
 
-        dropArea.addEventListener('click', () => fileInput.click());
+        if (dropArea) {
+            dropArea.addEventListener('click', () => fileInput.click());
 
-        ['dragover', 'dragleave', 'drop'].forEach((eventName) => {
-            dropArea.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+            ['dragover', 'dragleave', 'drop'].forEach((eventName) => {
+                dropArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
             });
-        });
 
-        dropArea.addEventListener('drop', (e) => {
-            if (e.dataTransfer.files.length) {
-                uploadFiles(e.dataTransfer.files);
-            }
-        });
+            dropArea.addEventListener('drop', (e) => {
+                if (e.dataTransfer.files.length) {
+                    uploadFiles(e.dataTransfer.files);
+                }
+            });
 
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length) {
-                uploadFiles(fileInput.files);
-            }
-        });
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length) {
+                    uploadFiles(fileInput.files);
+                }
+            });
+        }
 
         function uploadFiles(fileList) {
             const formData = new FormData();

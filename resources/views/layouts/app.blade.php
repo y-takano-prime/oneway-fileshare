@@ -61,7 +61,7 @@
         .axon-nav-link:hover { background: #E6F0FF; color: #0044CC; border-color: #B0CCFF; }
         .axon-nav-link.active { background: #0066FF; color: #fff; border-color: #0066FF; font-weight: 500; }
         .axon-nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-        .axon-nav-links { display: flex; align-items: center; gap: 0.75rem; }
+        .axon-nav-links { display: flex; align-items: center; gap: 0.75rem; margin-left: 1.5rem; }
         .axon-nav-toggle {
             display: none;
             background: transparent;
@@ -167,13 +167,17 @@
         }
 
         /* メトリクスカード */
-        .axon-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .axon-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .axon-stat {
             background: #fff;
             border: 0.5px solid #D0DEFF;
             border-radius: 8px;
             padding: 12px 14px;
+            display: block;
+            text-decoration: none;
+            transition: border-color .15s, box-shadow .15s;
         }
+        .axon-stat:hover { border-color: #0066FF; box-shadow: 0 2px 8px rgba(0, 102, 255, .08); }
         .axon-stat-num {
             font-size: 26px;
             font-weight: 500;
@@ -181,11 +185,14 @@
             line-height: 1;
         }
         .axon-stat-label {
-            font-size: 10px;
+            font-size: 12px;
             color: #7090CC;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.02em;
             text-transform: uppercase;
             margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         /* テーブル */
@@ -405,6 +412,7 @@
                 flex-direction: column;
                 align-items: stretch;
                 gap: 6px;
+                margin-left: 0;
                 margin-top: 0.75rem;
             }
             .axon-nav-links.open { display: flex; }
@@ -458,14 +466,17 @@
         </a>
 
         @if(Auth::user()->role === 'admin')
+        <a href="{{ route('files.index') }}" class="axon-nav-link {{ request()->routeIs('files.*') ? 'active' : '' }}">
+            ファイル管理
+        </a>
         <a href="{{ route('admin.users.index') }}" class="axon-nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
             ユーザー管理
         </a>
         <a href="{{ route('admin.logs.index') }}" class="axon-nav-link {{ request()->routeIs('admin.logs.*') ? 'active' : '' }}">
-            ログ
+            ログ管理
         </a>
         <a href="{{ route('admin.storage.index') }}" class="axon-nav-link {{ request()->routeIs('admin.storage.*') ? 'active' : '' }}">
-            ストレージ
+            ストレージ管理
         </a>
         <a href="{{ route('admin.settings.index') }}" class="axon-nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
             設定
@@ -514,6 +525,10 @@
     @endif
 
     @yield('content')
+
+    @if(!empty($appVersion))
+        <div style="text-align:center;font-size:11px;color:#B0C0E0;padding:1.5rem 0 0.5rem">{{ $appVersion }}</div>
+    @endif
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>

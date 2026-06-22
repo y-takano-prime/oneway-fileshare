@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\StorageWarningMail;
 use App\Models\DeletedFilesLog;
+use App\Models\DownloadUrl;
 use App\Models\SharedFile;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,17 +17,35 @@ class FileController extends Controller
 {
     public function index(Request $request)
     {
-        $query = SharedFile::withCount('downloadUrls')->with(['user', 'downloadUrls']);
+        $query = SharedFile::query()
+            ->leftJoin('users', 'users.id', '=', 'shared_files.user_id')
+            ->select('shared_files.*', 'users.name as uploader_name')
+            ->withCount('downloadUrls')
+            ->with(['user', 'downloadUrls'])
+            ->addSelect(['earliest_expires_at' => DownloadUrl::selectRaw('MIN(expires_at)')
+                ->whereColumn('shared_file_id', 'shared_files.id'),
+            ]);
 
         if (Auth::user()->role !== 'admin') {
-            $query->where('user_id', Auth::id());
+            $query->where('shared_files.user_id', Auth::id());
         }
 
         if ($q = $request->input('q')) {
-            $query->where('original_name', 'like', "%{$q}%");
+            $query->where('shared_files.original_name', 'like', "%{$q}%");
         }
 
-        $files = $query->latest()->paginate(20)->withQueryString();
+        $allowedSorts = [
+            'original_name'       => 'shared_files.original_name',
+            'download_urls_count' => 'download_urls_count',
+            'uploader_name'       => 'uploader_name',
+            'file_size'           => 'shared_files.file_size',
+            'created_at'          => 'shared_files.created_at',
+            'earliest_expires_at' => 'earliest_expires_at',
+        ];
+        $sort = array_key_exists($request->input('sort'), $allowedSorts) ? $request->input('sort') : 'created_at';
+        $dir  = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+
+        $files = $query->orderBy($allowedSorts[$sort], $dir)->paginate(20)->withQueryString();
 
         $graceDays = 7;
         if (Storage::exists('settings.json')) {
@@ -34,11 +53,15 @@ class FileController extends Controller
             $graceDays = $settings['cleanup_grace_days'] ?? 7;
         }
 
-        return view('files.index', ['files' => $files, 'graceDays' => $graceDays]);
+        return view('files.index', ['files' => $files, 'graceDays' => $graceDays, 'sort' => $sort, 'dir' => $dir]);
     }
 
     public function store(Request $request)
     {
+        if (Auth::user()->role === 'admin') {
+            abort(403, 'ファイルのアップロードは担当者のみ操作できます');
+        }
+
         $request->validate([
             'files' => ['required', 'array', 'min:1'],
             'files.*' => [
@@ -47,6 +70,14 @@ class FileController extends Controller
                 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,csv,txt',
             ],
         ]);
+
+        $batchMb = round(collect($request->file('files'))->sum(fn($f) => $f->getSize()) / 1024 / 1024, 1);
+        $maxBatchMb = config('fileshare.max_upload_batch_mb');
+        if ($batchMb > $maxBatchMb) {
+            return response()->json([
+                'message' => "1回のアップロード合計サイズが上限（{$maxBatchMb}MB）を超えています（現在 {$batchMb}MB）。ファイルを分けてアップロードしてください。",
+            ], 422);
+        }
 
         $category = in_array($request->input('category'), ['business', 'recruitment', 'other'])
             ? $request->input('category') : null;
