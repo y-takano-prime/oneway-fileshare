@@ -72,7 +72,6 @@ class CleanupExpiredFiles extends Command
     private function loadSettings()
     {
         $defaults = [
-            'passcode_required' => false,
             'cleanup_grace_days' => 7,
             'notify_before_delete' => false,
         ];

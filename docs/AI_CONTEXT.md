@@ -13,7 +13,7 @@
 | DB名 | `oneway_fileshare`（接続情報は `.env` 参照。本ファイルに秘匿情報は書かない） |
 | テストログイン（管理者） | `admin@example.com` / `password`（`AdminUserSeeder` による初期データ） |
 | Git | originと連携済みの通常のgitリポジトリ。`main`ブランチで運用 |
-| 開発ログ記録 | `log_start.bat`（開始時）/ `log_end.bat`（終了時）を実行 → `docs/開発ログ.md` に追記 |
+| 開発ログ記録 | `docs/開発ログ.md`へ直接追記する運用 |
 
 ---
 
@@ -127,7 +127,6 @@ oneway-fileshare/
 │   ├── admin/{users/{index,create,edit}, logs/index, settings/index}.blade.php
 │   └── emails/{otp, download_notification, delete_notification}.blade.php
 ├── routes/web.php
-├── log_start.bat / log_end.bat
 └── CLAUDE.md
 ```
 

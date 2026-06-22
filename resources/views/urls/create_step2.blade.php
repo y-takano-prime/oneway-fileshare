@@ -53,7 +53,7 @@
             <tbody>
                 @forelse($files as $file)
                 <tr style="cursor:pointer" onclick="this.querySelector('input').click()">
-                    <td><input type="radio" name="shared_file_id" value="{{ $file->id }}" style="accent-color:#0066FF;width:15px;height:15px"></td>
+                    <td><input type="radio" name="shared_file_id" value="{{ $file->id }}" style="accent-color:#0066FF;width:15px;height:15px" {{ (int) $preselectedFileId === $file->id ? 'checked' : '' }}></td>
                     <td style="font-weight:500">
                         {{ $file->original_name }}
                         @if($file->category === 'business')

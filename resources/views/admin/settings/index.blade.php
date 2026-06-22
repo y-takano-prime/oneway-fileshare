@@ -14,10 +14,6 @@
     <div class="axon-card" style="max-width:480px">
         <form method="POST" action="{{ route('admin.settings.update') }}">
             @csrf
-            <div style="margin-bottom:1.25rem;display:flex;align-items:center;gap:8px">
-                <input type="checkbox" name="passcode_required" value="1" id="passcode_required" {{ $settings['passcode_required'] ? 'checked' : '' }} style="accent-color:#0066FF;width:15px;height:15px">
-                <label for="passcode_required" style="font-size:13px;color:#001240;cursor:pointer">パスコードを必須にする</label>
-            </div>
             <div style="margin-bottom:1.25rem">
                 <label class="axon-label">削除までの猶予日数</label>
                 <input type="number" name="cleanup_grace_days" value="{{ old('cleanup_grace_days', $settings['cleanup_grace_days']) }}" class="axon-input" min="0" max="365" required>

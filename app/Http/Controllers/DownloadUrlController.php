@@ -129,7 +129,11 @@ class DownloadUrlController extends Controller
             abort(403, 'URL発行は担当者のみ操作できます');
         }
 
-        return view('urls.create');
+        $preselectedFileId = SharedFile::where('id', $request->input('shared_file_id'))
+            ->where('user_id', Auth::id())
+            ->value('id');
+
+        return view('urls.create', ['preselectedFileId' => $preselectedFileId]);
     }
 
     public function storeStep1(Request $request)
@@ -148,11 +152,14 @@ class DownloadUrlController extends Controller
             'download_limit'     => ['nullable', 'integer', 'min:1', 'max:9999'],
             'notify_on_download' => ['boolean'],
             'memo'               => ['nullable', 'string', 'max:2000'],
+            'shared_file_id'     => ['nullable', Rule::exists('shared_files', 'id')->where('user_id', Auth::id())],
         ]);
 
         $validated['notify_on_download'] = $request->boolean('notify_on_download');
+        $preselectedFileId = $validated['shared_file_id'] ?? null;
+        unset($validated['shared_file_id']);
 
-        session(['create_recipient' => $validated]);
+        session(['create_recipient' => $validated, 'create_preselected_file_id' => $preselectedFileId]);
 
         return redirect()->route('urls.create_step2');
     }
@@ -168,8 +175,9 @@ class DownloadUrlController extends Controller
         }
 
         $files = SharedFile::query()->where('user_id', Auth::id())->latest()->get();
+        $preselectedFileId = session('create_preselected_file_id');
 
-        return view('urls.create_step2', ['files' => $files]);
+        return view('urls.create_step2', ['files' => $files, 'preselectedFileId' => $preselectedFileId]);
     }
 
     public function store(Request $request)
@@ -231,7 +239,7 @@ class DownloadUrlController extends Controller
             'download_count' => 0,
         ]));
 
-        session()->forget('create_recipient');
+        session()->forget(['create_recipient', 'create_preselected_file_id']);
 
         return redirect()->route('urls.complete', $url);
     }
@@ -324,6 +332,8 @@ class DownloadUrlController extends Controller
 
     public function complete(DownloadUrl $url)
     {
+        $this->authorizeOwner($url);
+
         $url->load(['sharedFile', 'user']);
         $mailText = $this->buildMailText($url);
         return view('urls.complete', ['url' => $url, 'mailText' => $mailText]);

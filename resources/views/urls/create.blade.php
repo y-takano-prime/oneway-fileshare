@@ -21,6 +21,9 @@
 <div class="axon-card">
     <form method="POST" action="{{ route('urls.store_step1') }}">
         @csrf
+        @if($preselectedFileId)
+        <input type="hidden" name="shared_file_id" value="{{ $preselectedFileId }}">
+        @endif
         <div style="margin-bottom:1rem">
             <label class="axon-label">属性 <span style="color:#CC0000">*</span></label>
             <div style="display:flex;gap:8px;margin-top:4px">

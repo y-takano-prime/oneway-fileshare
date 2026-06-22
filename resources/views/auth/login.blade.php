@@ -37,7 +37,7 @@
         <p class="dl-sub">メールアドレスとパスワードを入力してください</p>
 
         @if($errors->any())
-            <div class="dl-error">メールアドレスまたはパスワードが正しくありません</div>
+            <div class="dl-error">{{ $errors->first('email') }}</div>
         @endif
 
         <form method="POST" action="{{ route('login') }}">

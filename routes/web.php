@@ -32,7 +32,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('files', FileController::class)->only(['index', 'store', 'destroy']);
+    Route::resource('files', FileController::class)->only(['index', 'destroy']);
     Route::get('urls/create/step2', [DownloadUrlController::class, 'createStep2'])->name('urls.create_step2');
     Route::post('urls/step1', [DownloadUrlController::class, 'storeStep1'])->name('urls.store_step1');
     Route::resource('urls', DownloadUrlController::class)->only(['index', 'create', 'store']);
@@ -56,7 +56,6 @@ Route::middleware('auth')->group(function () {
 // 相手先（認証不要）
 Route::prefix('d/{token}')->group(function () {
     Route::get('/', [DownloadController::class, 'showPasscode'])->name('download.passcode');
-    Route::post('/passcode', [DownloadController::class, 'verifyPasscode'])->name('download.verify-passcode');
     Route::post('/email', [DownloadController::class, 'verifyEmail'])->name('download.verify-email');
     Route::get('/otp', [DownloadController::class, 'showOtp'])->name('download.otp');
     Route::post('/otp', [DownloadController::class, 'verifyOtp'])->name('download.verify-otp');

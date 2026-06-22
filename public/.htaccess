@@ -1,6 +1,6 @@
 <IfModule php7_module>
     php_value upload_max_filesize 100M
-    php_value post_max_size 320M
+    php_value post_max_size 110M
 </IfModule>
 
 <IfModule mod_rewrite.c>

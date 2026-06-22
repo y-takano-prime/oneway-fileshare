@@ -16,14 +16,12 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'passcode_required' => ['boolean'],
             'cleanup_grace_days' => ['required', 'integer', 'min:0', 'max:365'],
             'notify_before_delete' => ['boolean'],
             'storage_warning_threshold' => ['required', 'integer', 'min:1', 'max:100'],
         ]);
 
         $settings = [
-            'passcode_required' => $request->boolean('passcode_required'),
             'cleanup_grace_days' => $validated['cleanup_grace_days'],
             'notify_before_delete' => $request->boolean('notify_before_delete'),
             'storage_warning_threshold' => $validated['storage_warning_threshold'],
@@ -37,7 +35,6 @@ class SettingController extends Controller
     private function loadSettings()
     {
         $defaults = [
-            'passcode_required' => false,
             'cleanup_grace_days' => 7,
             'notify_before_delete' => false,
             'storage_warning_threshold' => 80,

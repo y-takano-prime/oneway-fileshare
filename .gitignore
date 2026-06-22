@@ -8,6 +8,3 @@
 *.log
 .DS_Store
 Thumbs.db
-docs/.log_start_time.tmp
-docs/.log_tmp.md
-docs/.log_write.py

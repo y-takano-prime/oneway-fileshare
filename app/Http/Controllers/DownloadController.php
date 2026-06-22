@@ -29,11 +29,6 @@ class DownloadController extends Controller
         return view('download.passcode', ['token' => $token, 'step' => 'email']);
     }
 
-    public function verifyPasscode($token, Request $request)
-    {
-        return redirect()->route('download.passcode', ['token' => $token]);
-    }
-
     public function verifyEmail($token, Request $request)
     {
         $url = $this->findUrl($token);

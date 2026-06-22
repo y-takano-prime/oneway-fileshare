@@ -16,13 +16,6 @@
 
 {{-- メトリクスカード --}}
 <div class="axon-stat-grid" style="margin-bottom:1.25rem">
-    <a href="{{ route('urls.index', ['status' => ['wait', 'done', 'expired']]) }}" class="axon-stat">
-        <div class="axon-stat-num">{{ $totalUrls }}</div>
-        <div class="axon-stat-label">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="color:#001240"><line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="2" y1="12" x2="14" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            発行済みURL
-        </div>
-    </a>
     <a href="{{ route('urls.index', ['status' => ['done']]) }}" class="axon-stat">
         <div class="axon-stat-num" style="color:#0044CC">{{ $doneCount }}</div>
         <div class="axon-stat-label">

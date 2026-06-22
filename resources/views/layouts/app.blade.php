@@ -465,10 +465,11 @@
             URL管理
         </a>
 
-        @if(Auth::user()->role === 'admin')
         <a href="{{ route('files.index') }}" class="axon-nav-link {{ request()->routeIs('files.*') ? 'active' : '' }}">
             ファイル管理
         </a>
+
+        @if(Auth::user()->role === 'admin')
         <a href="{{ route('admin.users.index') }}" class="axon-nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
             ユーザー管理
         </a>
